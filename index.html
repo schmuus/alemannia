@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>'s Alemannisch Wörterbuch</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<style>
+  :root{
+    --bg: #0e0e0d;
+    --bg-card: #1a1a18;
+    --white: #f5f5f0;
+    --dim: #8a8a80;
+    --orange: #f7931a;
+    --orange-dim: #c97516;
+    --border: #2e2c26;
+  }
+
+  * { box-sizing: border-box; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    background-image: radial-gradient(ellipse at 50% 0%, rgba(247,147,26,0.06), transparent 60%);
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    padding: 0 0 4rem;
+  }
+
+  header {
+    text-align: center;
+    padding: 3rem 1.5rem 2rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 2.5rem;
+  }
+
+  .glyph {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    font-size: 2rem;
+    color: var(--orange);
+    display: inline-block;
+    width: 56px;
+    height: 56px;
+    line-height: 56px;
+    border: 2px solid var(--orange);
+    border-radius: 50%;
+    margin-bottom: 1rem;
+  }
+
+  h1 {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 800;
+    font-size: clamp(1.7rem, 5vw, 2.4rem);
+    margin: 0 0 .4rem;
+    color: var(--white);
+    letter-spacing: -.5px;
+  }
+
+  header p.sub {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--dim);
+    font-size: .85rem;
+    margin: 0;
+  }
+
+  main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  .notice {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .78rem;
+    color: var(--dim);
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--orange);
+    border-radius: 4px;
+    padding: .8rem 1rem;
+    margin-bottom: 1.8rem;
+  }
+
+  .search-wrap {
+    margin-bottom: 2rem;
+  }
+
+  input, textarea {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    color: var(--white);
+    border-radius: 6px;
+    padding: .7rem .9rem;
+    font-size: 1rem;
+    width: 100%;
+  }
+
+  input:focus, textarea:focus, button:focus {
+    outline: 2px solid var(--orange);
+    outline-offset: 2px;
+  }
+
+  #search {
+    font-family: 'IBM Plex Mono', monospace;
+  }
+
+  .count {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--dim);
+    font-size: .8rem;
+    margin-top: .5rem;
+    display: block;
+  }
+
+  #entries-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    margin-bottom: 3rem;
+  }
+
+  .entry {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--orange);
+    border-radius: 4px;
+    padding: 1.1rem 1.3rem;
+    display: flex;
+    gap: 1rem;
+  }
+
+  .vote-block {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 46px;
+  }
+
+  .vote-btn {
+    background: none;
+    border: 1px solid var(--orange-dim);
+    color: var(--orange);
+    border-radius: 6px;
+    width: 34px;
+    height: 34px;
+    font-size: 1rem;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .vote-btn:hover { background: rgba(247,147,26,0.12); }
+  .vote-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: .95rem;
+    color: var(--white);
+    margin-top: .3rem;
+  }
+
+  .entry-body { flex: 1; min-width: 0; }
+
+  .entry-word {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.3rem;
+    color: var(--orange);
+    font-weight: 700;
+    display: block;
+  }
+
+  .entry-meaning {
+    margin: .5rem 0 0;
+    line-height: 1.5;
+  }
+
+  .entry-example {
+    margin: .5rem 0 0;
+    font-style: italic;
+    color: var(--dim);
+    font-size: .95rem;
+    border-left: 2px solid var(--border);
+    padding-left: .7rem;
+  }
+
+  .entry-foot {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: .6rem;
+  }
+
+  .delete-btn {
+    background: none;
+    border: none;
+    color: var(--dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .75rem;
+    cursor: pointer;
+    text-decoration: underline;
+    padding: .2rem;
+  }
+  .delete-btn:hover { color: var(--orange); }
+
+  .empty-state {
+    text-align: center;
+    color: var(--dim);
+    font-family: 'IBM Plex Mono', monospace;
+    padding: 2rem 1rem;
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+  }
+
+  form#add-form {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 1.5rem;
+  }
+
+  form#add-form h2 {
+    font-family: 'JetBrains Mono', monospace;
+    margin: 0 0 1rem;
+    font-size: 1.2rem;
+    color: var(--white);
+    font-weight: 700;
+  }
+
+  .field {
+    margin-bottom: 1rem;
+  }
+
+  .field label {
+    display: block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--dim);
+    margin-bottom: .35rem;
+  }
+
+  button[type="submit"] {
+    background: var(--orange);
+    color: #14140d;
+    border: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 1rem;
+    padding: .7rem 1.6rem;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 100%;
+  }
+  button[type="submit"]:hover { background: #ffab3d; }
+
+  .status {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .8rem;
+    color: var(--dim);
+    text-align: center;
+    margin-top: .6rem;
+    min-height: 1.2em;
+  }
+
+  footer {
+    text-align: center;
+    color: var(--dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .75rem;
+    margin-top: 2.5rem;
+    padding: 0 1.5rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="glyph">₿</span>
+  <h1>'s Alemannisch Wörterbuch</h1>
+  <p class="sub">Slang &amp; Jargon &middot; gmeinsam gsammlet</p>
+</header>
+
+<main>
+  <div class="notice">Des Wörterbuch isch geteilt: alli mit Zugriff sehnd, füege Wörtli zue und vote mit — jede Änderig isch in Echtzeit für alli sichtbar.</div>
+  <div class="notice" id="connection-notice" style="display:none;">⚠️ Firebase isch no net konfiguriert. Trag dein <code>firebaseConfig</code> im HTML-Code (Abschnitt "FIREBASE CONFIG") yy.</div>
+
+  <div class="search-wrap">
+    <input type="text" id="search" placeholder="Suech noch ere Wörtli oder Bedeutig …" aria-label="Wörterbuch durchsuchen">
+    <span class="count" id="count"></span>
+  </div>
+
+  <div id="entries-list" aria-live="polite"></div>
+
+  <form id="add-form">
+    <h2>Neus Wörtli yyschriibe</h2>
+    <div class="field">
+      <label for="word">Wort (Alemannisch) *</label>
+      <input type="text" id="word" required placeholder="z. B. Muggeseggele">
+    </div>
+    <div class="field">
+      <label for="meaning">Bedeutung (Hochdeutsch) *</label>
+      <textarea id="meaning" required rows="2" placeholder="Was heißt des uf Hochdeutsch?"></textarea>
+    </div>
+    <div class="field">
+      <label for="example">Beispielsatz (optional)</label>
+      <input type="text" id="example" placeholder="z. B. Do fehlt bloß no a Muggeseggele!">
+    </div>
+    <button type="submit">Yyfüege</button>
+    <div class="status" id="status"></div>
+  </form>
+</main>
+
+<footer>
+  Geteiltes Wörterbuch &middot; sichtbar für alle mit Zugriff auf diese App.
+</footer>
+
+<script>
+/* ======= FIREBASE CONFIG =======
+   Ersetz die Werte unten mit deinen eigenen aus der Firebase-Konsole:
+   Projekteinstellungen -> Deine Apps -> Web-App -> SDK-Konfiguration.
+   Wichtig: databaseURL muss gesetzt sein (Realtime Database, nicht Firestore). */
+const firebaseConfig = {
+  apiKey: "AIzaSyCJfQqYISmOv0J5QfVz8V7re6XCqNLL5Hc",
+  authDomain: "jargon-2bcd1.firebaseapp.com",
+  databaseURL: "https://jargon-2bcd1-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "jargon-2bcd1",
+  storageBucket: "jargon-2bcd1.firebasestorage.app",
+  messagingSenderId: "842248373476",
+  appId: "1:842248373476:web:46dc44d8e1c52901b958f1"
+};
+/* ================================ */
+
+const seedEntries = {
+  a1: { word: 'Muggeseggele', meaning: 'Sehr kleine Maßeinheit; wörtlich der Hodensack einer Fliege.', example: 'Do fehlt bloß no a Muggeseggele!', votes: 3 },
+  a2: { word: 'Käpsele', meaning: 'Ein schlauer, cleverer Mensch.', example: 'Du bisch aber a Käpsele!', votes: 1 },
+  a3: { word: 'Chuchichäschtli', meaning: 'Küchenschrank; gilt als berüchtigt schwer auszusprechen.', example: 'Stell s Gschirr wieder is Chuchichäschtli.', votes: 2 },
+  a4: { word: 'Bappenheimer', meaning: 'Ein etwas einfältiger oder tollpatschiger Mensch.', example: 'So a Bappenheimer, jetzt hot er s wieder falsch gmacht.', votes: 0 },
+  a5: { word: 'Gwundrig', meaning: 'Neugierig, wissbegierig.', example: 'Sei doch net so gwundrig!', votes: 0 },
+  a6: { word: 'Àde', meaning: 'Abschiedsgruß, entspricht "Auf Wiedersehen".', example: 'Àde, bis bald!', votes: 0 }
+};
+
+let entries = [];
+let entriesRef = null;
+const isConfigured = !Object.values(firebaseConfig).some(v => String(v).startsWith('DEIN'));
+
+function initFirebase() {
+  if (!isConfigured) {
+    document.getElementById('connection-notice').style.display = 'block';
+    entries = Object.entries(seedEntries).map(([id, e]) => ({ id, ...e }));
+    render();
+    return;
+  }
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  entriesRef = db.ref('entries');
+
+  entriesRef.once('value', snap => {
+    if (!snap.exists()) entriesRef.set(seedEntries);
+  });
+
+  entriesRef.on('value', snap => {
+    const data = snap.val() || {};
+    entries = Object.entries(data).map(([id, e]) => ({ id, ...e }));
+    render();
+  });
+}
+
+function setStatus(msg, isError) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.style.color = isError ? 'var(--orange)' : 'var(--dim)';
+  if (msg) setTimeout(() => { el.textContent = ''; }, 2500);
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function render() {
+  const query = document.getElementById('search').value.trim().toLowerCase();
+  const list = document.getElementById('entries-list');
+  const count = document.getElementById('count');
+
+  const filtered = entries
+    .filter(e => !query || e.word.toLowerCase().includes(query) || e.meaning.toLowerCase().includes(query))
+    .sort((a, b) => (b.votes - a.votes) || a.word.localeCompare(b.word, 'de'));
+
+  count.textContent = `${filtered.length} von ${entries.length} Wörtli`;
+
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty-state">Nix gfunde. Vielleicht kennsch du des Wörtli — schrieb s doch yy!</div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(e => `
+    <article class="entry">
+      <div class="vote-block">
+        <button class="vote-btn" data-id="${e.id}" aria-label="Für ${escapeHtml(e.word)} voten">▲</button>
+        <span class="vote-count">${e.votes || 0}</span>
+      </div>
+      <div class="entry-body">
+        <span class="entry-word">${escapeHtml(e.word)}</span>
+        <p class="entry-meaning">${escapeHtml(e.meaning)}</p>
+        ${e.example ? `<p class="entry-example">${escapeHtml(e.example)}</p>` : ''}
+        <div class="entry-foot">
+          <button class="delete-btn" data-id="${e.id}">löschen</button>
+        </div>
+      </div>
+    </article>
+  `).join('');
+
+  list.querySelectorAll('.vote-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!isConfigured) { setStatus('Firebase isch no net konfiguriert.', true); return; }
+      entriesRef.child(btn.dataset.id).child('votes').transaction(v => (v || 0) + 1);
+    });
+  });
+
+  list.querySelectorAll('.delete-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (!isConfigured) { setStatus('Firebase isch no net konfiguriert.', true); return; }
+      entriesRef.child(btn.dataset.id).remove();
+      setStatus('Wörtli glöscht.');
+    });
+  });
+}
+
+document.getElementById('search').addEventListener('input', render);
+
+document.getElementById('add-form').addEventListener('submit', (ev) => {
+  ev.preventDefault();
+  const word = document.getElementById('word').value.trim();
+  const meaning = document.getElementById('meaning').value.trim();
+  const example = document.getElementById('example').value.trim();
+
+  if (!word || !meaning) return;
+  if (!isConfigured) { setStatus('Firebase isch no net konfiguriert.', true); return; }
+
+  entriesRef.push({ word, meaning, example, votes: 0 });
+  ev.target.reset();
+  setStatus('Wörtli gspeichert!');
+});
+
+initFirebase();
+</script>
+</body>
+</html>
