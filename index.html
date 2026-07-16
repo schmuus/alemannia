@@ -901,7 +901,7 @@ function renderBattle() {
       const idx = parseInt(btn.dataset.index, 10);
       const winner = currentBattle[idx];
       const loser = currentBattle[1 - idx];
-      result.textContent = `🏆 „${winner.word}" gwinnt disi Rundi (+0.21%) — „${loser.word}" verliert (-0.07%).`;
+      result.textContent = `🏆 „${winner.word}" gwinnt disi Rundi und goht im Kurs nach oobe — „${loser.word}" verliert und het e kleine Kursiibruch.`;
       arena.querySelectorAll('.battle-card').forEach(b => b.disabled = true);
       if (isConfigured && entriesRef) {
         entriesRef.child(winner.id).child('votes').transaction(v => Math.round(((v || 0) + 0.21) * 100) / 100);
@@ -973,13 +973,13 @@ function endBlitzRound(choice, correctEntry) {
   if (!choice) {
     result.textContent = `⏱ Zit abglaufe! S richtige Wort wär „${correctEntry.word}" gsi.`;
   } else if (choice.correct) {
-    result.textContent = `✅ Richtig! „${correctEntry.word}" übercho +0.15%.`;
+    result.textContent = `✅ Richtig! „${correctEntry.word}" Kurs goht e weng uffe.`;
     if (isConfigured && entriesRef) {
       entriesRef.child(correctEntry.id).child('votes').transaction(v => Math.round(((v || 0) + 0.15) * 100) / 100);
     }
   } else {
     const wrongWord = entries.find(e => e.id === choice.id);
-    result.textContent = `❌ Leider falsch. „${wrongWord ? wrongWord.word : ''}" übercho -0.12%.`;
+    result.textContent = `❌ Leider falsch. „${wrongWord ? wrongWord.word : ''}" voliert weng an Kurs.`;
     if (isConfigured && entriesRef && wrongWord) {
       entriesRef.child(wrongWord.id).child('votes').transaction(v => Math.round(((v || 0) - 0.12) * 100) / 100);
     }
