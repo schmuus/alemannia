@@ -855,7 +855,7 @@ function render() {
       const id = btn.dataset.id;
       if (myVotes[id]) return;
       const dir = btn.dataset.dir;
-      const delta = dir === 'up' ? 0.81 : -0.81;
+      const delta = dir === 'up' ? 0.71 : -0.71;
       entriesRef.child(id).child('votes').transaction(v => Math.round(((v || 0) + delta) * 100) / 100);
       myVotes[id] = dir;
       saveMyVotes();
