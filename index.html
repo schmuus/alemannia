@@ -771,7 +771,7 @@ function renderBattle() {
     btn.addEventListener('click', () => {
       const idx = parseInt(btn.dataset.index, 10);
       const winner = currentBattle[idx];
-      result.textContent = `🏆 „${winner.word}" gwinnt disi Runde und übercho +0.21% Bonus!`;
+      result.textContent = `🏆 „${winner.word}" gwinnt disi Rundi und übercho e Bonus!`;
       arena.querySelectorAll('.battle-card').forEach(b => b.disabled = true);
       if (isConfigured && entriesRef) {
         entriesRef.child(winner.id).child('votes').transaction(v => Math.round(((v || 0) + 0.21) * 100) / 100);
