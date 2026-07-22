@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>s' Alemannia Wörterbuechli</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#f7931a">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -401,6 +405,26 @@
     padding: 0 1.5rem;
   }
 
+  #global-toast {
+    position: fixed;
+    left: 50%;
+    bottom: 1.2rem;
+    transform: translateX(-50%);
+    background: var(--bg-card);
+    border: 1px solid var(--orange-dim);
+    border-left: 4px solid var(--orange);
+    color: var(--white);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .82rem;
+    padding: .8rem 1.1rem;
+    border-radius: 6px;
+    max-width: 90vw;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    z-index: 1000;
+    display: none;
+  }
+  #global-toast.error { border-left-color: #e0654a; border-color: #e0654a; }
+
   .search-meta {
     display: flex;
     justify-content: space-between;
@@ -708,15 +732,15 @@
     <h2>Neus Wörtli yyschriibe</h2>
     <div class="field">
       <label for="word">Wort (Alemannisch) *</label>
-      <input type="text" id="word" required placeholder="z. B. Muggeseggele">
+      <input type="text" id="word" required maxlength="60" placeholder="z. B. Muggeseggele">
     </div>
     <div class="field">
       <label for="meaning">Bedeutung (Hochdeutsch) *</label>
-      <textarea id="meaning" required rows="2" placeholder="Was heißt des uf Hochdeutsch?"></textarea>
+      <textarea id="meaning" required maxlength="300" rows="2" placeholder="Was heißt des uf Hochdeutsch?"></textarea>
     </div>
     <div class="field">
       <label for="example">Beispielsatz (optional)</label>
-      <input type="text" id="example" placeholder="z. B. Do fehlt bloß no a Muggeseggele!">
+      <input type="text" id="example" maxlength="300" placeholder="z. B. Do fehlt bloß no a Muggeseggele!">
     </div>
     <button type="submit">Yyfüege</button>
     <div class="status" id="status"></div>
@@ -781,7 +805,7 @@
       <option value="__random__">🎲 Zufälliger Name</option>
       <option value="__custom__">✏️ Eigener Name …</option>
     </select>
-    <input type="text" id="sentence-custom-name" placeholder="Din Name" style="display:none;">
+    <input type="text" id="sentence-custom-name" maxlength="30" placeholder="Din Name" style="display:none;">
   </div>
   <div class="sentence-output" id="sentence-output">Wähl en Name und klick uf „Satz generiere".</div>
   <div class="sentence-actions">
@@ -799,6 +823,8 @@
   <ol class="lidaboard-list" id="hall-of-fame-full-list" style="display:none; margin-top: 1rem;"></ol>
 </section>
 
+<div id="global-toast" role="alert"></div>
+
 <script>
 /* ======= FIREBASE CONFIG =======
    Ersetz die Werte unten mit deinen eigenen aus der Firebase-Konsole:
@@ -814,6 +840,24 @@ const firebaseConfig = {
   appId: "1:842248373476:web:46dc44d8e1c52901b958f1"
 };
 /* ================================ */
+
+let toastTimer = null;
+function showToast(msg, isError) {
+  const el = document.getElementById('global-toast');
+  if (!el) return;
+  el.textContent = msg;
+  el.classList.toggle('error', !!isError);
+  el.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+function firebaseErrorHandler(context) {
+  return (err) => {
+    console.error(context, err);
+    showToast(`Konnt nid gspeichert werde (${context}). Bitte nomol probiere.`, true);
+  };
+}
 
 const seedEntries = {
   a1: { word: 'Muggeseggele', meaning: 'Sehr kleine Maßeinheit; wörtlich der Hodensack einer Fliege.', example: 'Do fehlt bloß no a Muggeseggele!', votes: 3 },
@@ -923,7 +967,7 @@ function initFirebase() {
   hallOfFameRef = db.ref('sentences');
 
   entriesRef.once('value', snap => {
-    if (!snap.exists()) entriesRef.set(seedEntries);
+    if (!snap.exists()) entriesRef.set(seedEntries).catch(firebaseErrorHandler('Wörterbuch initialisiere'));
   });
 
   hallOfFameRef.on('value', snap => {
@@ -1089,8 +1133,14 @@ function renderBattle() {
       result.textContent = `🏆 „${winner.word}" gwinnt disi Rundi (+0.21%) — „${loser.word}" verliert (-0.07%).`;
       arena.querySelectorAll('.battle-card').forEach(b => b.disabled = true);
       if (isConfigured && entriesRef) {
-        entriesRef.child(winner.id).child('votes').transaction(v => Math.round(((v || 0) + 0.21) * 100) / 100);
-        entriesRef.child(loser.id).child('votes').transaction(v => Math.round(((v || 0) - 0.07) * 100) / 100);
+        entriesRef.child(winner.id).child('votes').transaction(
+          v => Math.round(((v || 0) + 0.21) * 100) / 100,
+          (err) => { if (err) firebaseErrorHandler('Battle-Bonus')(err); }
+        );
+        entriesRef.child(loser.id).child('votes').transaction(
+          v => Math.round(((v || 0) - 0.07) * 100) / 100,
+          (err) => { if (err) firebaseErrorHandler('Battle-Malus')(err); }
+        );
       }
       gameLimits.battle++;
       saveGameLimits();
@@ -1160,13 +1210,19 @@ function endBlitzRound(choice, correctEntry) {
   } else if (choice.correct) {
     result.textContent = `✅ Richtig! „${correctEntry.word}" übercho +0.15%.`;
     if (isConfigured && entriesRef) {
-      entriesRef.child(correctEntry.id).child('votes').transaction(v => Math.round(((v || 0) + 0.15) * 100) / 100);
+      entriesRef.child(correctEntry.id).child('votes').transaction(
+        v => Math.round(((v || 0) + 0.15) * 100) / 100,
+        (err) => { if (err) firebaseErrorHandler('Blitz-Rate-Bonus')(err); }
+      );
     }
   } else {
     const wrongWord = entries.find(e => e.id === choice.id);
     result.textContent = `❌ Leider falsch. „${wrongWord ? wrongWord.word : ''}" übercho -0.12%.`;
     if (isConfigured && entriesRef && wrongWord) {
-      entriesRef.child(wrongWord.id).child('votes').transaction(v => Math.round(((v || 0) - 0.12) * 100) / 100);
+      entriesRef.child(wrongWord.id).child('votes').transaction(
+        v => Math.round(((v || 0) - 0.12) * 100) / 100,
+        (err) => { if (err) firebaseErrorHandler('Blitz-Rate-Malus')(err); }
+      );
     }
   }
 
@@ -1218,7 +1274,10 @@ function finishSpin() {
   result.textContent = `🎡 „${winner.word}" übercho ${sign}${outcome.toFixed(2)}%!`;
 
   if (isConfigured && entriesRef) {
-    entriesRef.child(winner.id).child('votes').transaction(v => Math.round(((v || 0) + outcome) * 100) / 100);
+    entriesRef.child(winner.id).child('votes').transaction(
+      v => Math.round(((v || 0) + outcome) * 100) / 100,
+      (err) => { if (err) firebaseErrorHandler('Wort-Rad')(err); }
+    );
   }
 
   gameLimits.wheel++;
@@ -1382,15 +1441,20 @@ function likeCurrentSentence() {
   if (!currentSentenceText || currentSentenceSaved || !isConfigured || !hallOfFameRef) return;
 
   const newRef = hallOfFameRef.push();
-  newRef.set({ text: currentSentenceText, likes: 1, createdAt: Date.now() });
-  mySentenceLikes[newRef.key] = true;
-  saveMySentenceLikes();
-
-  currentSentenceSaved = true;
-  likeBtn.disabled = true;
-  likeBtn.classList.add('liked');
-  likeBtn.textContent = '❤️ Gspeicheret';
-  likeStatus.textContent = 'Satz für alli in de Hall-of-Fame gspeicheret!';
+  newRef.set({ text: currentSentenceText, likes: 1, createdAt: Date.now() })
+    .then(() => {
+      mySentenceLikes[newRef.key] = true;
+      saveMySentenceLikes();
+      currentSentenceSaved = true;
+      likeBtn.disabled = true;
+      likeBtn.classList.add('liked');
+      likeBtn.textContent = '❤️ Gspeicheret';
+      likeStatus.textContent = 'Satz für alli in de Hall-of-Fame gspeicheret!';
+    })
+    .catch((err) => {
+      firebaseErrorHandler('Satz spichere')(err);
+      likeStatus.textContent = '';
+    });
 }
 
 document.getElementById('sentence-like-btn').addEventListener('click', likeCurrentSentence);
@@ -1422,7 +1486,10 @@ function wireHofButtons(container) {
     btn.addEventListener('click', () => {
       const id = btn.dataset.id;
       if (mySentenceLikes[id] || !hallOfFameRef) return;
-      hallOfFameRef.child(id).child('likes').transaction(v => (v || 0) + 1);
+      hallOfFameRef.child(id).child('likes').transaction(
+        v => (v || 0) + 1,
+        (err) => { if (err) firebaseErrorHandler('Satz like')(err); }
+      );
       mySentenceLikes[id] = true;
       saveMySentenceLikes();
       renderHallOfFame();
@@ -1432,7 +1499,7 @@ function wireHofButtons(container) {
   container.querySelectorAll('.hof-delete-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       if (!hallOfFameRef) return;
-      hallOfFameRef.child(btn.dataset.id).remove();
+      hallOfFameRef.child(btn.dataset.id).remove().catch(firebaseErrorHandler('Satz lösche'));
     });
   });
 }
@@ -1504,15 +1571,15 @@ function render() {
         <div class="entry-body" style="width:100%;">
           <div class="edit-field">
             <label for="edit-word-${e.id}">Wort</label>
-            <input type="text" id="edit-word-${e.id}" value="${escapeHtml(e.word)}">
+            <input type="text" id="edit-word-${e.id}" maxlength="60" value="${escapeHtml(e.word)}">
           </div>
           <div class="edit-field">
             <label for="edit-meaning-${e.id}">Bedeutung</label>
-            <textarea id="edit-meaning-${e.id}" rows="2">${escapeHtml(e.meaning)}</textarea>
+            <textarea id="edit-meaning-${e.id}" maxlength="300" rows="2">${escapeHtml(e.meaning)}</textarea>
           </div>
           <div class="edit-field">
             <label for="edit-example-${e.id}">Beispielsatz</label>
-            <input type="text" id="edit-example-${e.id}" value="${escapeHtml(e.example || '')}">
+            <input type="text" id="edit-example-${e.id}" maxlength="300" value="${escapeHtml(e.example || '')}">
           </div>
           <div class="entry-foot">
             <button class="cancel-btn" data-id="${e.id}">abbrechen</button>
@@ -1552,7 +1619,10 @@ function render() {
       if (myVotes[id]) return;
       const dir = btn.dataset.dir;
       const delta = dir === 'up' ? 0.71 : -0.71;
-      entriesRef.child(id).child('votes').transaction(v => Math.round(((v || 0) + delta) * 100) / 100);
+      entriesRef.child(id).child('votes').transaction(
+        v => Math.round(((v || 0) + delta) * 100) / 100,
+        (err) => { if (err) firebaseErrorHandler('Vote')(err); }
+      );
       myVotes[id] = dir;
       saveMyVotes();
       render();
@@ -1562,8 +1632,9 @@ function render() {
   list.querySelectorAll('.delete-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       if (!isConfigured) { setStatus('Firebase isch no net konfiguriert.', true); return; }
-      entriesRef.child(btn.dataset.id).remove();
-      setStatus('Wörtli glöscht.');
+      entriesRef.child(btn.dataset.id).remove()
+        .then(() => setStatus('Wörtli glöscht.'))
+        .catch(firebaseErrorHandler('Wörtli lösche'));
     });
   });
 
@@ -1591,9 +1662,12 @@ function render() {
       if (!word || !meaning) { setStatus('Wort und Bedeutung dürfed net leer si.', true); return; }
       if (!isConfigured) { setStatus('Firebase isch no net konfiguriert.', true); return; }
 
-      entriesRef.child(id).update({ word, meaning, example });
-      editingId = null;
-      setStatus('Wörtli aktualisiert!');
+      entriesRef.child(id).update({ word, meaning, example })
+        .then(() => {
+          editingId = null;
+          setStatus('Wörtli aktualisiert!');
+        })
+        .catch(firebaseErrorHandler('Wörtli aktualisiere'));
     });
   });
 }
@@ -1609,12 +1683,21 @@ document.getElementById('add-form').addEventListener('submit', (ev) => {
   if (!word || !meaning) return;
   if (!isConfigured) { setStatus('Firebase isch no net konfiguriert.', true); return; }
 
-  entriesRef.push({ word, meaning, example, votes: 0 });
-  ev.target.reset();
-  setStatus('Wörtli gspeichert!');
+  entriesRef.push({ word, meaning, example, votes: 0 })
+    .then(() => {
+      ev.target.reset();
+      setStatus('Wörtli gspeichert!');
+    })
+    .catch(firebaseErrorHandler('Wörtli yyfüege'));
 });
 
 initFirebase();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => { /* PWA-Feature optional, still funktioniert d App */ });
+  });
+}
 </script>
 </body>
 </html>
