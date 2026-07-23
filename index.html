@@ -732,15 +732,15 @@
     <h2>Neus Wörtli yyschriibe</h2>
     <div class="field">
       <label for="word">Wort (Alemannisch) *</label>
-      <input type="text" id="word" required maxlength="60" placeholder="z. B. Muggeseggele">
+      <input type="text" id="word" required maxlength="25" placeholder="z. B. Muggeseggele">
     </div>
     <div class="field">
       <label for="meaning">Bedeutung (Hochdeutsch) *</label>
-      <textarea id="meaning" required maxlength="300" rows="2" placeholder="Was heißt des uf Hochdeutsch?"></textarea>
+      <textarea id="meaning" required maxlength="100" rows="2" placeholder="Was heißt des uf Hochdeutsch?"></textarea>
     </div>
     <div class="field">
       <label for="example">Beispielsatz (optional)</label>
-      <input type="text" id="example" maxlength="300" placeholder="z. B. Do fehlt bloß no a Muggeseggele!">
+      <input type="text" id="example" maxlength="150" placeholder="z. B. Do fehlt bloß no a Muggeseggele!">
     </div>
     <button type="submit">Yyfüege</button>
     <div class="status" id="status"></div>
@@ -805,7 +805,7 @@
       <option value="__random__">🎲 Zufälliger Name</option>
       <option value="__custom__">✏️ Eigener Name …</option>
     </select>
-    <input type="text" id="sentence-custom-name" maxlength="30" placeholder="Din Name" style="display:none;">
+    <input type="text" id="sentence-custom-name" maxlength="20" placeholder="Din Name" style="display:none;">
   </div>
   <div class="sentence-output" id="sentence-output">Wähl en Name und klick uf „Satz generiere".</div>
   <div class="sentence-actions">
@@ -1571,15 +1571,15 @@ function render() {
         <div class="entry-body" style="width:100%;">
           <div class="edit-field">
             <label for="edit-word-${e.id}">Wort</label>
-            <input type="text" id="edit-word-${e.id}" maxlength="60" value="${escapeHtml(e.word)}">
+            <input type="text" id="edit-word-${e.id}" maxlength="25" value="${escapeHtml(e.word)}">
           </div>
           <div class="edit-field">
             <label for="edit-meaning-${e.id}">Bedeutung</label>
-            <textarea id="edit-meaning-${e.id}" maxlength="300" rows="2">${escapeHtml(e.meaning)}</textarea>
+            <textarea id="edit-meaning-${e.id}" maxlength="100" rows="2">${escapeHtml(e.meaning)}</textarea>
           </div>
           <div class="edit-field">
             <label for="edit-example-${e.id}">Beispielsatz</label>
-            <input type="text" id="edit-example-${e.id}" maxlength="300" value="${escapeHtml(e.example || '')}">
+            <input type="text" id="edit-example-${e.id}" maxlength="150" value="${escapeHtml(e.example || '')}">
           </div>
           <div class="entry-foot">
             <button class="cancel-btn" data-id="${e.id}">abbrechen</button>
