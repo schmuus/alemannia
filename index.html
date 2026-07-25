@@ -788,6 +788,14 @@
 
 </div>
 
+<section class="battle-section games-toggle-section">
+  <h2 class="battle-title">📝 Sätz & Hall-of-Fame</h2>
+  <p class="battle-sub">Lustigi Sätz generiere und d beschte in de Hall-of-Fame verewige.</p>
+  <button type="button" class="battle-next-btn" id="sentence-toggle-btn">📝 Satz-Generator zeige</button>
+</section>
+
+<div id="sentence-container" style="display:none;">
+
 <section class="battle-section">
   <h2 class="battle-title">📝 Satz-Generator</h2>
   <p class="battle-sub">Wähl en Name und lueg, was für en lustige Satz drus wird.</p>
@@ -822,6 +830,8 @@
   <button type="button" class="battle-next-btn" id="hof-toggle-btn" style="display:none; margin-top: 1rem;">🗂️ Alli Sätz azeige</button>
   <ol class="lidaboard-list" id="hall-of-fame-full-list" style="display:none; margin-top: 1rem;"></ol>
 </section>
+
+</div>
 
 <div id="global-toast" role="alert"></div>
 
@@ -948,6 +958,14 @@ document.getElementById('games-toggle-btn').addEventListener('click', () => {
   const isHidden = container.style.display === 'none';
   container.style.display = isHidden ? 'block' : 'none';
   btn.textContent = isHidden ? 'Spiel verstecke 🔼' : '🎮 Spiel zeige';
+});
+
+document.getElementById('sentence-toggle-btn').addEventListener('click', () => {
+  const container = document.getElementById('sentence-container');
+  const btn = document.getElementById('sentence-toggle-btn');
+  const isHidden = container.style.display === 'none';
+  container.style.display = isHidden ? 'block' : 'none';
+  btn.textContent = isHidden ? 'Satz-Generator verstecke 🔼' : '📝 Satz-Generator zeige';
 });
 
 function initFirebase() {
