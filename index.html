@@ -3,1719 +3,1683 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>s' Alemannia Wörterbuechli</title>
+<title>Herbarium — Digitale Pflanzensammlung</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#f7931a">
-<link rel="icon" href="icon-192.png">
-<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="theme-color" content="#2a4230">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Herbarium">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<script>
+  (function(){
+    try{
+      const saved = localStorage.getItem('herbarium-theme');
+      if(saved === 'dark') document.documentElement.setAttribute('data-theme','dark');
+    }catch(e){}
+  })();
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Source+Serif+4:ital,wght@0,400;0,500;0,600;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg: #0e0e0d;
-    --bg-card: #1a1a18;
-    --white: #f5f5f0;
-    --dim: #8a8a80;
-    --orange: #f7931a;
-    --orange-dim: #c97516;
-    --border: #2e2c26;
+    --paper: #eae3cf;
+    --paper-light: #f3ede0;
+    --ink: #24301f;
+    --ink-soft: #5b6152;
+    --green: #3b5d42;
+    --green-dark: #2a4230;
+    --rose: #8a3b3b;
+    --ochre: #a9791f;
+    --slate: #556270;
+    --plum: #8f5a76;
+    --wood: #7a5236;
+    --moss: #6b7a45;
+    --line: rgba(36,48,31,0.18);
+    --shadow: 0 8px 24px rgba(36,48,31,0.14), 0 2px 6px rgba(36,48,31,0.10);
+  }
+  [data-theme="dark"]{
+    --paper:#1b201a;
+    --paper-light:#242b21;
+    --ink:#eae5d4;
+    --ink-soft:#a7ab99;
+    --green:#5c8a68;
+    --green-dark:#8fbf9c;
+    --rose:#c17777;
+    --ochre:#d1a44e;
+    --slate:#8b9baa;
+    --plum:#c093ac;
+    --wood:#b98a63;
+    --moss:#9fb374;
+    --line:rgba(234,229,212,0.16);
+    --shadow: 0 10px 26px rgba(0,0,0,0.55), 0 3px 8px rgba(0,0,0,0.4);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(ellipse at 20% -10%, rgba(59,93,66,0.06), transparent 45%),
+      radial-gradient(ellipse at 90% 10%, rgba(169,121,31,0.07), transparent 40%),
+      var(--paper);
+    color:var(--ink);
+    font-family:'Source Serif 4', serif;
+    min-height:100vh;
+    transition:background .2s ease, color .2s ease;
+  }
+  [data-theme="dark"] .card-photo{background:linear-gradient(160deg,#2b3226,#1f251c);}
+  [data-theme="dark"] .overlay{background:rgba(0,0,0,0.7);}
+
+  .app{max-width:1180px;margin:0 auto;padding:36px 24px 80px;}
+
+  header.top{
+    display:flex;justify-content:space-between;align-items:flex-end;gap:24px;
+    border-bottom:2px solid var(--ink);
+    padding-bottom:18px;margin-bottom:22px;flex-wrap:wrap;
+  }
+  .brand-eyebrow{
+    font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.18em;
+    text-transform:uppercase;color:var(--ink-soft);margin:0 0 4px;
+  }
+  h1.brand{
+    font-family:'Fraunces',serif;font-weight:600;font-size:clamp(32px,5vw,48px);
+    margin:0;line-height:1;color:var(--green-dark);letter-spacing:-0.01em;
+  }
+  .brand em{font-style:italic;font-weight:400;}
+  .brand-row{display:flex;align-items:center;gap:18px;}
+  .brand-illustration{height:96px;width:auto;flex:0 0 auto;object-fit:contain;}
+  @media (max-width:640px){
+    .brand-illustration{height:64px;}
+  }
+  .top-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+
+  input[type=text]{
+    font-family:'Source Serif 4',serif;font-size:15px;
+    background:var(--paper-light);border:1px solid var(--line);
+    border-radius:3px;padding:10px 14px;color:var(--ink);min-width:220px;
+  }
+  input[type=text]:focus{outline:2px solid var(--green);outline-offset:1px;}
+
+  button{
+    font-family:'Space Mono',monospace;font-size:12.5px;letter-spacing:.04em;
+    cursor:pointer;border-radius:3px;border:1px solid var(--ink);
+    background:var(--ink);color:var(--paper-light);padding:11px 18px;
+    text-transform:uppercase;transition:transform .12s ease, background .15s ease;
+  }
+  button:hover{background:var(--green-dark);}
+  button:active{transform:translateY(1px);}
+  button.ghost{background:transparent;color:var(--ink);border:1px solid var(--ink);}
+  button.ghost:hover{background:var(--ink);color:var(--paper-light);}
+  button.danger{background:transparent;color:var(--rose);border:1px solid var(--rose);}
+  button.danger:hover{background:var(--rose);color:var(--paper-light);}
+  button:focus-visible, input:focus-visible, select:focus-visible, [contenteditable]:focus-visible{
+    outline:2px solid var(--green); outline-offset:2px;
+  }
+  .icon-btn{
+    background:transparent;border:1px solid var(--ink);color:var(--ink);
+    width:40px;height:40px;padding:0;border-radius:50%;font-size:16px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .icon-btn:hover{background:var(--ink);color:var(--paper-light);}
+  .icon-btn.small{width:26px;height:26px;font-size:12px;border-color:var(--line);color:var(--ink-soft);}
+  .backup-controls{display:inline-flex;gap:4px;margin-left:auto;opacity:.7;}
+
+  .auth-controls{position:relative;}
+  .login-panel{
+    position:absolute;top:calc(100% + 8px);right:0;background:var(--paper-light);
+    border:1px solid var(--line);border-radius:6px;box-shadow:var(--shadow);
+    padding:14px;display:flex;flex-direction:column;gap:8px;width:220px;z-index:60;
+  }
+  .login-panel input{
+    font-family:'Source Serif 4',serif;font-size:14px;padding:8px 10px;
+    border:1px solid var(--line);border-radius:4px;background:var(--paper);color:var(--ink);
+  }
+  .login-error{
+    font-family:'Space Mono',monospace;font-size:11px;color:var(--rose);display:none;
+  }
+  .login-error.show{display:block;}
+
+  /* Bearbeiten/Löschen/Favorisieren/Import nur für eingeloggte Nutzer sichtbar */
+  body:not(.logged-in) #addBtn,
+  body:not(.logged-in) #importBtn,
+  body:not(.logged-in) .fav-star,
+  body:not(.logged-in) #editBtn,
+  body:not(.logged-in) #editBtnFooter{
+    display:none !important;
+  }
+  .backup-controls:hover{opacity:1;}
+
+  .view-controls{
+    display:flex;align-items:center;gap:20px;margin-bottom:18px;flex-wrap:wrap;
+    font-family:'Space Mono',monospace;font-size:12px;color:var(--ink-soft);
+  }
+  .view-controls label{display:flex;align-items:center;gap:7px;cursor:pointer;}
+  .view-controls select{
+    font-family:'Space Mono',monospace;font-size:12px;background:var(--paper-light);
+    border:1px solid var(--line);border-radius:3px;padding:7px 10px;color:var(--ink);
   }
 
-  * { box-sizing: border-box; }
+  .filters{display:flex;gap:8px;margin-bottom:26px;flex-wrap:wrap;}
 
-  @media (prefers-reduced-motion: reduce) {
-    * { animation: none !important; transition: none !important; }
+  .stats-bar{
+    font-family:'Space Mono',monospace;font-size:11.5px;color:var(--ink-soft);
+    margin-bottom:14px;letter-spacing:.02em;
   }
+  .stats-bar strong{color:var(--ink);font-weight:700;}
 
-  body {
-    margin: 0;
-    background: var(--bg);
-    background-image: radial-gradient(ellipse at 50% 0%, rgba(247,147,26,0.06), transparent 60%);
-    color: var(--white);
-    font-family: 'Inter', sans-serif;
-    min-height: 100vh;
-    padding: 0 0 4rem;
+  .season-bar{
+    background:var(--paper-light);border:1px solid var(--line);border-radius:6px;
+    padding:14px 18px;margin-bottom:20px;
   }
-
-  header {
-    text-align: center;
-    padding: 3rem 1.5rem 2rem;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 2.5rem;
+  .season-details summary{
+    cursor:pointer; list-style:none;
   }
-
-  .glyph {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 800;
-    font-size: 2rem;
-    color: var(--orange);
-    display: inline-block;
-    width: 56px;
-    height: 56px;
-    line-height: 56px;
-    border: 2px solid var(--orange);
-    border-radius: 50%;
-    margin-bottom: 1rem;
+  .season-details summary::-webkit-details-marker{display:none;}
+  .season-title{
+    font-family:'Fraunces',serif;font-style:italic;font-size:16px;color:var(--green-dark);
+    display:flex; align-items:baseline;
   }
+  .season-title::before{content:'▸ '; font-style:normal;}
+  .season-details[open] .season-title::before{content:'▾ ';}
+  .season-details[open] .season-title{margin-bottom:10px;}
+  .season-count{font-style:normal;font-size:13px;color:var(--ink-soft);margin-left:6px;}
+  .season-month{font-family:'Space Mono',monospace;font-style:normal;font-size:11px;
+    color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em;margin-left:auto;}
+  .season-chips{display:flex;gap:8px;flex-wrap:wrap;}
+  .season-chip{
+    font-family:'Source Serif 4',serif;font-size:13px;padding:6px 12px;border-radius:20px;
+    border:1px solid var(--line);background:var(--paper);color:var(--ink);cursor:pointer;
+  }
+  .season-chip:hover{background:var(--green);color:#fff;border-color:var(--green);}
 
-  h1 {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 800;
-    font-size: clamp(1.7rem, 5vw, 2.4rem);
-    margin: 0 0 .4rem;
-    color: var(--white);
-    letter-spacing: -.5px;
+  .confuse-badge{
+    position:absolute;top:8px;left:8px;background:rgba(138,59,59,0.9);color:#fff;
+    width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-size:12px;pointer-events:none;
   }
 
-  header p.sub {
-    font-family: 'IBM Plex Mono', monospace;
-    color: var(--dim);
-    font-size: .85rem;
-    margin: 0;
+  .dup-warning{
+    font-family:'Space Mono',monospace;font-size:11px;color:var(--rose);margin-top:4px;display:none;
+  }
+  .dup-warning.show{display:block;}
+  .chip-filter{
+    font-family:'Space Mono',monospace;font-size:11px;letter-spacing:.06em;
+    text-transform:uppercase;padding:7px 12px;border-radius:20px;
+    border:1px solid var(--line);background:var(--paper-light);cursor:pointer;color:var(--ink-soft);
+  }
+  .chip-filter.active{background:var(--ink);color:var(--paper-light);border-color:var(--ink);}
+
+  .grid{
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+    gap:22px;
+  }
+  .grid.list-mode{display:flex;flex-direction:column;gap:8px;}
+  .list-row{
+    display:flex;align-items:center;gap:14px;padding:10px 14px;border:1px solid var(--line);
+    border-radius:6px;background:var(--paper-light);cursor:pointer;position:relative;
+  }
+  .list-row:hover{box-shadow:var(--shadow);}
+  .list-thumb{
+    width:46px;height:46px;border-radius:4px;overflow:hidden;flex:0 0 auto;
+    background:linear-gradient(160deg,#dcd6c2,#c9c3ab);display:flex;align-items:center;justify-content:center;
+  }
+  .list-thumb img{width:100%;height:100%;object-fit:cover;}
+  .list-thumb svg{width:24px;height:24px;color:var(--green-dark);opacity:.5;}
+  .list-main{flex:1;min-width:0;}
+  .list-common{font-family:'Fraunces',serif;font-weight:600;font-size:15px;color:var(--ink);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .list-latin{font-style:italic;color:var(--ink-soft);font-size:12px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .list-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:3px;}
+  .list-tags .tag{font-size:9px;padding:2px 7px;}
+  .list-actions{display:flex;align-items:center;gap:6px;flex:0 0 auto;}
+  .list-confuse{color:var(--rose);font-size:14px;}
+  .view-toggle{display:inline-flex;gap:4px;}
+  .view-toggle .icon-btn.active{background:var(--ink);color:var(--paper-light);}
+  .empty-state{
+    grid-column:1/-1;text-align:center;padding:70px 20px;color:var(--ink-soft);
+    border:1px dashed var(--line);border-radius:4px;font-family:'Space Mono',monospace;font-size:13px;
+  }
+  .empty-state .big{display:block;font-family:'Fraunces',serif;font-style:italic;
+    font-size:22px;color:var(--ink);margin-bottom:8px;}
+  .spinner{
+    width:26px;height:26px;border:3px solid var(--line);border-top-color:var(--green);
+    border-radius:50%;margin:0 auto 14px;animation:spin .8s linear infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .family-group{margin-bottom:10px;}
+  .family-group summary{
+    font-family:'Fraunces',serif;font-weight:600;font-size:19px;color:var(--green-dark);
+    cursor:pointer;padding:10px 4px;border-bottom:1px solid var(--line);margin-bottom:18px;
+    list-style:none;
+  }
+  .family-group summary::-webkit-details-marker{display:none;}
+  .family-group summary::before{content:'▸ ';}
+  .family-group[open] summary::before{content:'▾ ';}
+  .family-grid{margin-bottom:26px;}
+
+  .card{
+    background:var(--paper-light);border:1px solid var(--line);border-radius:4px;
+    box-shadow:var(--shadow);cursor:pointer;overflow:hidden;position:relative;
+    display:flex;flex-direction:column;transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .card:hover{transform:translateY(-3px);box-shadow:0 14px 30px rgba(36,48,31,0.18);}
+  .card-photo{
+    height:150px;background:linear-gradient(160deg,#dcd6c2,#c9c3ab);
+    display:flex;align-items:center;justify-content:center;position:relative;
+    border-bottom:1px solid var(--line);overflow:hidden;
+  }
+  .card-photo img{width:100%;height:100%;object-fit:cover;}
+  .leaf-watermark{width:56px;height:56px;opacity:.35;color:var(--green-dark);}
+  .fav-star{
+    position:absolute;top:8px;right:8px;background:rgba(30,26,18,0.55);border:none;
+    color:#f0d977;width:28px;height:28px;border-radius:50%;font-size:15px;
+    display:flex;align-items:center;justify-content:center;padding:0;line-height:1;
+  }
+  .fav-star:hover{background:rgba(30,26,18,0.8);}
+  .fav-star.on{color:#f5c518;}
+  .fav-star.static{position:static;background:transparent;color:var(--ink-soft);}
+  .fav-star.static.on{color:#c9a227;}
+  .fav-star.static:hover{background:var(--paper);}
+  .card-body{padding:14px 16px 12px;flex:1;display:flex;flex-direction:column;gap:4px;}
+  .card-common{font-family:'Fraunces',serif;font-weight:600;font-size:19px;color:var(--ink);line-height:1.15;}
+  .card-latin{font-style:italic;color:var(--ink-soft);font-size:13.5px;}
+  .card-volksnamen{font-family:'Source Serif 4',serif;font-size:12px;color:var(--ink-soft);}
+  .card-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+  .tag{
+    font-family:'Space Mono',monospace;font-size:10px;letter-spacing:.04em;
+    text-transform:uppercase;padding:3px 8px;border-radius:20px;color:#fff;
+  }
+  .tag.heilpflanze{background:var(--green);}
+  .tag.giftig{background:var(--rose);}
+  .tag.bedingt_giftig{background:var(--plum);}
+  .tag.baum{background:var(--wood);}
+  .tag.strauch{background:var(--moss);}
+  .tag.speisepflanze{background:var(--ochre);}
+  .tag.zierpflanze{background:var(--slate);}
+  .tag.sonstige{background:var(--ink-soft);}
+  .tag.custom{background:transparent;border:1px solid var(--line);color:var(--ink-soft);}
+
+  .custom-tags-edit{padding:6px 32px 4px;}
+  .custom-tags-edit label{font-family:'Space Mono',monospace;font-size:11px;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--ink-soft);display:block;margin-bottom:8px;}
+  .custom-tag-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+
+  .overlay{
+    position:fixed;inset:0;background:rgba(24,30,20,0.55);backdrop-filter:blur(2px);
+    display:none;align-items:flex-start;justify-content:center;padding:36px 16px;
+    overflow-y:auto;z-index:50;
+  }
+  .overlay.open{display:flex;}
+  .sheet{
+    background:var(--paper-light);width:100%;max-width:820px;border-radius:6px;
+    border:1px solid var(--line);box-shadow:0 30px 60px rgba(0,0,0,0.35);
+    position:relative;
+  }
+  .sheet-header{
+    display:flex;justify-content:space-between;align-items:flex-start;gap:16px;
+    padding:28px 32px 18px;border-bottom:2px solid var(--ink);
+  }
+  .sheet-title-block{flex:1;}
+  .sheet-header-actions{display:flex;gap:8px;align-items:center;}
+  .field-common{
+    font-family:'Fraunces',serif;font-weight:600;font-size:30px;color:var(--green-dark);
+    border:none;background:transparent;width:100%;padding:2px 0;outline:none;
+  }
+  .field-latin{
+    font-family:'Source Serif 4',serif;font-style:italic;font-size:16px;color:var(--ink-soft);
+    border:none;background:transparent;width:100%;padding:2px 0;outline:none;
+  }
+  .field-common:focus,.field-latin:focus{background:rgba(59,93,66,0.06);border-radius:3px;}
+  .sheet-close{background:transparent;border:1px solid var(--ink);color:var(--ink);
+    width:34px;height:34px;padding:0;border-radius:50%;font-size:16px;line-height:1;}
+  .sheet-close:hover{background:var(--ink);color:var(--paper-light);}
+  .sheet-fav{background:transparent;border:1px solid var(--ink);color:#c9a227;
+    width:34px;height:34px;padding:0;border-radius:50%;font-size:16px;line-height:1;}
+  .sheet-fav:hover{background:var(--ink);}
+
+  .sheet-meta-row{
+    display:flex;gap:20px;padding:14px 32px;border-bottom:1px dashed var(--line);
+    flex-wrap:wrap;
+  }
+  .meta-item{display:flex;flex-direction:column;gap:3px;min-width:140px;flex:1;}
+  .meta-item label{font-family:'Space Mono',monospace;font-size:10px;text-transform:uppercase;
+    letter-spacing:.06em;color:var(--ink-soft);}
+  .meta-item input{
+    font-family:'Space Mono',monospace;font-size:13px;background:transparent;
+    border:none;border-bottom:1px solid var(--line);padding:3px 0;color:var(--ink);
+  }
+  .meta-item input:focus{border-bottom:1px solid var(--green);}
+  .meta-item.read div{font-family:'Space Mono',monospace;font-size:13px;color:var(--ink);padding:3px 0;}
+
+  .read-common{
+    font-family:'Fraunces',serif;font-weight:600;font-size:30px;color:var(--green-dark);line-height:1.15;
+  }
+  .read-latin{font-family:'Source Serif 4',serif;font-style:italic;font-size:16px;color:var(--ink-soft);margin-top:2px;}
+  .read-photos{margin:20px 32px 0;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+  .read-photos img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4px;}
+  .read-tags{display:flex;flex-wrap:wrap;gap:8px;margin:18px 32px 0;}
+  .read-text{
+    font-family:'Source Serif 4',serif;font-size:15px;line-height:1.55;color:var(--ink);
+    white-space:pre-wrap;padding:4px 6px;
+  }
+  .harvest-calendar.read-only .harvest-cell{cursor:default;pointer-events:none;}
+  .confusable-jump-chip{
+    font-family:'Source Serif 4',serif;font-size:13px;padding:6px 14px;border-radius:20px;
+    border:1px solid var(--rose);background:transparent;color:var(--rose);cursor:pointer;
+  }
+  .confusable-jump-chip:hover{background:var(--rose);color:#fff;}
+
+  .photo-gallery{
+    margin:20px 32px 0;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;
+  }
+  .photo-slot{
+    position:relative;aspect-ratio:4/3;border-radius:4px;border:1px dashed var(--line);
+    background:var(--paper);display:flex;align-items:center;justify-content:center;
+    overflow:hidden;cursor:pointer;
+  }
+  .photo-slot img{width:100%;height:100%;object-fit:cover;}
+  .photo-slot .hint{font-family:'Space Mono',monospace;font-size:10px;color:var(--ink-soft);
+    text-align:center;padding:0 8px;}
+  .photo-slot input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;}
+  .photo-remove{
+    position:absolute;top:5px;right:5px;width:22px;height:22px;border-radius:50%;
+    background:rgba(20,18,12,0.75);color:#fff;border:none;padding:0;font-size:12px;
+    display:flex;align-items:center;justify-content:center;line-height:1;z-index:2;
+  }
+  .photo-remove:hover{background:var(--rose);}
+  .photo-processing{
+    position:absolute;inset:0;background:rgba(0,0,0,0.6);display:flex;
+    align-items:center;justify-content:center;font-family:'Space Mono',monospace;
+    font-size:10px;color:#f3ede0;text-align:center;padding:0 8px;
   }
 
-  main {
-    max-width: 720px;
-    margin: 0 auto;
-    padding: 0 1.5rem;
+  .sections{padding:8px 32px 8px;display:grid;gap:4px;}
+  .section{border-bottom:1px solid var(--line);padding:16px 0;}
+  .section label{
+    display:block;font-family:'Space Mono',monospace;font-size:11px;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--green-dark);margin-bottom:8px;font-weight:700;
+  }
+  .section textarea{
+    width:100%;font-family:'Source Serif 4',serif;font-size:15px;line-height:1.55;
+    border:none;background:transparent;resize:none;overflow:hidden;min-height:32px;color:var(--ink);
+    padding:4px 6px;border-radius:3px;
+  }
+  .section textarea:focus{background:rgba(59,93,66,0.06);}
+  .section.warn label{color:var(--rose);}
+
+  .harvest-section{padding-bottom:20px;}
+  .harvest-calendar{width:100%;}
+  .harvest-header,.harvest-row{display:flex;align-items:center;gap:6px;width:100%;}
+  .harvest-header{margin-bottom:6px;}
+  .harvest-row{margin-bottom:5px;}
+  .harvest-label{
+    width:58px;flex:0 0 auto;font-family:'Space Mono',monospace;font-size:10.5px;
+    color:var(--ink-soft);letter-spacing:.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .harvest-row.accent .harvest-label{color:var(--ochre);font-weight:700;}
+  .harvest-track{flex:1;min-width:0;display:grid;grid-template-columns:repeat(12,1fr);gap:0;height:22px;}
+  .harvest-track.header{height:auto;}
+  .harvest-month-label{
+    font-family:'Space Mono',monospace;font-size:9px;color:var(--ink-soft);text-align:center;
+  }
+  .harvest-cell{
+    border:none;border-bottom:1px solid var(--line);background:var(--paper);cursor:pointer;
+    padding:0;height:22px;min-width:0;
+  }
+  .harvest-cell.on{background:var(--green);border-bottom-color:var(--green);}
+  .harvest-cell.on.seg-start{border-top-left-radius:11px;border-bottom-left-radius:11px;}
+  .harvest-cell.on.seg-end{border-top-right-radius:11px;border-bottom-right-radius:11px;}
+  .harvest-cell.on.accent{background:var(--ochre);border-bottom-color:var(--ochre);}
+  .harvest-divider{
+    border-top:1px dashed var(--line);margin:6px 0 10px 64px;
   }
 
-  .notice {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: .78rem;
-    color: var(--dim);
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--orange);
-    border-radius: 4px;
-    padding: .8rem 1rem;
-    margin-bottom: 1.8rem;
+  @media (max-width:640px){
+    .harvest-label{width:42px;font-size:9px;}
+    .harvest-divider{margin-left:48px;}
+    .harvest-month-label{font-size:7.5px;}
   }
 
-  .search-wrap {
-    margin-bottom: 2rem;
+  .tags-edit{padding:6px 32px 4px;}
+  .tags-edit label{font-family:'Space Mono',monospace;font-size:11px;text-transform:uppercase;
+    letter-spacing:.08em;color:var(--ink-soft);display:block;margin-bottom:8px;}
+  .tag-options{display:flex;gap:8px;flex-wrap:wrap;}
+  .tag-opt{
+    font-family:'Space Mono',monospace;font-size:11px;text-transform:uppercase;
+    padding:6px 12px;border-radius:20px;border:1px solid var(--line);background:transparent;
+    color:var(--ink-soft);cursor:pointer;
+  }
+  .tag-opt.on.heilpflanze{background:var(--green);color:#fff;border-color:var(--green);}
+  .tag-opt.on.giftig{background:var(--rose);color:#fff;border-color:var(--rose);}
+  .tag-opt.on.bedingt_giftig{background:var(--plum);color:#fff;border-color:var(--plum);}
+  .tag-opt.on.baum{background:var(--wood);color:#fff;border-color:var(--wood);}
+  .tag-opt.on.strauch{background:var(--moss);color:#fff;border-color:var(--moss);}
+  .tag-opt.on.speisepflanze{background:var(--ochre);color:#fff;border-color:var(--ochre);}
+  .tag-opt.on.zierpflanze{background:var(--slate);color:#fff;border-color:var(--slate);}
+  .tag-opt.on.sonstige{background:var(--ink-soft);color:#fff;border-color:var(--ink-soft);}
+
+  .confusable-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+  .confusable-pill{
+    display:inline-flex;align-items:center;gap:6px;background:var(--paper);
+    border:1px solid var(--line);border-radius:20px;padding:4px 4px 4px 12px;
+  }
+  .confusable-jump{
+    background:transparent;border:none;padding:0;color:var(--ink);text-transform:none;
+    letter-spacing:0;font-family:'Space Mono',monospace;font-size:11px;cursor:pointer;
+  }
+  .confusable-jump:hover{text-decoration:underline;color:var(--green-dark);}
+  .confusable-remove{
+    background:transparent;border:none;color:var(--ink-soft);width:18px;height:18px;
+    border-radius:50%;padding:0;font-size:10px;
+  }
+  .confusable-remove:hover{background:var(--rose);color:#fff;}
+  .confusable-add{
+    font-family:'Space Mono',monospace;font-size:12px;background:var(--paper-light);
+    border:1px solid var(--line);border-radius:3px;padding:8px 10px;color:var(--ink);width:100%;
   }
 
-  input, textarea {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    color: var(--white);
-    border-radius: 6px;
-    padding: .7rem .9rem;
-    font-size: 1rem;
-    width: 100%;
+  .sheet-footer{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:20px 32px 28px;
+  }
+  .save-hint{font-family:'Space Mono',monospace;font-size:11px;color:var(--ink-soft);}
+
+  @media (max-width:640px){
+    .sheet-header,.sheet-meta-row,.photo-gallery,.sections,.tags-edit,.sheet-footer{
+      padding-left:18px;padding-right:18px;
+    }
+    .card-photo{height:120px;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;}
   }
 
-  input:focus, textarea:focus, button:focus {
-    outline: 2px solid var(--orange);
-    outline-offset: 2px;
-  }
+  .print-label{display:none;}
 
-  #search {
-    font-family: 'IBM Plex Mono', monospace;
+  @media print{
+    :root,[data-theme="dark"]{
+      --paper:#fff; --paper-light:#fff; --ink:#1a1a1a; --ink-soft:#444;
+      --line:#ccc; --green:#3b5d42; --green-dark:#2a4230; --ochre:#a9791f; --rose:#8a3b3b;
+    }
+    html, body{height:auto !important; overflow:visible !important;}
+    .app{display:none !important;}
+    #overlay{
+      position:static !important; inset:auto !important; display:block !important;
+      background:none !important; backdrop-filter:none !important;
+      padding:0 !important; height:auto !important; overflow:visible !important;
+    }
+    #sheet{
+      position:static !important; width:100% !important; max-width:none !important;
+      margin:0 !important; box-shadow:none; border:2px solid var(--ink); border-radius:0;
+    }
+    .sheet-header{border-bottom:2px solid var(--ink);}
+    .sheet-header-actions, .sheet-footer, .photo-remove, .confuse-badge,
+    .fav-star, .icon-btn, .photo-slot input[type=file]{display:none !important;}
+    .print-label{
+      display:flex; justify-content:space-between; align-items:baseline;
+      font-family:'Space Mono',monospace; font-size:10px; text-transform:uppercase;
+      letter-spacing:.08em; color:#555; padding:8px 32px 0; border-bottom:1px dashed #999;
+    }
+    .harvest-cell{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    .tag{-webkit-print-color-adjust:exact; print-color-adjust:exact;}
+    @page{ margin:16mm; }
   }
-
-  .count {
-    font-family: 'IBM Plex Mono', monospace;
-    color: var(--dim);
-    font-size: .8rem;
-    margin-top: .5rem;
-    display: block;
-  }
-
-  #entries-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1.1rem;
-    margin-bottom: 3rem;
-  }
-
-  .entry {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-left: 3px solid var(--orange);
-    border-radius: 4px;
-    padding: 1.1rem 1.3rem;
-    display: flex;
-    gap: 1rem;
-  }
-
-  .vote-block {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-width: 56px;
-  }
-
-  .vote-btn {
-    background: none;
-    border: 1px solid var(--orange-dim);
-    color: var(--orange);
-    border-radius: 6px;
-    width: 34px;
-    height: 34px;
-    font-size: 1rem;
-    cursor: pointer;
-    line-height: 1;
-  }
-  .vote-btn:hover:not(:disabled) { background: rgba(247,147,26,0.12); }
-  .vote-btn.down {
-    border-color: #7a6a5c;
-    color: var(--dim);
-  }
-  .vote-btn.down:hover:not(:disabled) { background: rgba(180,80,60,0.12); color: #e0654a; }
-  .vote-btn:disabled {
-    cursor: not-allowed;
-    opacity: .35;
-  }
-  .vote-btn.voted {
-    opacity: 1;
-    background: rgba(247,147,26,0.18);
-  }
-  .vote-btn.down.voted {
-    background: rgba(180,80,60,0.18);
-  }
-  .vote-count {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700;
-    font-size: .95rem;
-    color: var(--white);
-    margin: .3rem 0;
-  }
-  .vote-count.positive { color: #2ecc71; }
-  .vote-count.negative { color: #e0654a; }
-  .vote-count.neutral { color: var(--dim); }
-
-  .ticker {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: .62rem;
-    color: var(--dim);
-    letter-spacing: .04em;
-  }
-
-  .daily-card {
-    background: linear-gradient(135deg, rgba(247,147,26,0.14), rgba(247,147,26,0.02));
-    border: 1px solid var(--orange-dim);
-    border-radius: 6px;
-    padding: 1.2rem 1.4rem;
-    margin-bottom: 1.8rem;
-  }
-  .daily-label {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: .7rem;
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    color: var(--orange);
-    margin: 0 0 .5rem;
-  }
-  .daily-word {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 1.6rem;
-    font-weight: 800;
-    color: var(--white);
-  }
-  .daily-meaning {
-    margin: .4rem 0 0;
-    line-height: 1.5;
-  }
-  .daily-example {
-    margin: .5rem 0 0;
-    font-style: italic;
-    color: var(--dim);
-    font-size: .92rem;
-  }
-
-  .lidaboard-section {
-    margin-bottom: 2rem;
-  }
-  .lidaboard-title {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--white);
-    margin: 0 0 .8rem;
-  }
-  .lidaboard-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: .5rem;
-  }
-  .lidaboard-item {
-    display: flex;
-    align-items: center;
-    gap: .8rem;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: .6rem .9rem;
-  }
-  .lidaboard-rank {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 800;
-    color: var(--orange);
-    min-width: 1.4rem;
-  }
-  .lidaboard-word {
-    flex: 1;
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700;
-    color: var(--white);
-  }
-  .lidaboard-ticker {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: .68rem;
-    color: var(--dim);
-  }
-
-  .entry-body { flex: 1; min-width: 0; }
-
-  .entry-word {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 1.3rem;
-    color: var(--orange);
-    font-weight: 700;
-    display: block;
-  }
-
-  .entry-meaning {
-    margin: .5rem 0 0;
-    line-height: 1.5;
-  }
-
-  .entry-example {
-    margin: .5rem 0 0;
-    font-style: italic;
-    color: var(--dim);
-    font-size: .95rem;
-    border-left: 2px solid var(--border);
-    padding-left: .7rem;
-  }
-
-  .entry-foot {
-    display: flex;
-    justify-content: flex-end;
-    gap: 1rem;
-    margin-top: .6rem;
-  }
-
-  .delete-btn, .edit-btn, .save-btn, .cancel-btn {
-    background: none;
-    border: none;
-    color: var(--dim);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: .75rem;
-    cursor: pointer;
-    text-decoration: underline;
-    padding: .2rem;
-  }
-  .delete-btn:hover { color: var(--orange); }
-  .edit-btn:hover { color: var(--orange); }
-  .save-btn { color: var(--orange); }
-  .save-btn:hover { color: #ffab3d; }
-  .cancel-btn:hover { color: var(--white); }
-
-  .edit-field {
-    margin-bottom: .7rem;
-  }
-  .edit-field label {
-    display: block;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: .7rem;
-    text-transform: uppercase;
-    letter-spacing: .05em;
-    color: var(--dim);
-    margin-bottom: .3rem;
-  }
-
-  .empty-state {
-    text-align: center;
-    color: var(--dim);
-    font-family: 'IBM Plex Mono', monospace;
-    padding: 2rem 1rem;
-    border: 1px dashed var(--border);
-    border-radius: 6px;
-  }
-
-  form#add-form {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 1.5rem;
-  }
-
-  form#add-form h2 {
-    font-family: 'JetBrains Mono', monospace;
-    margin: 0 0 1rem;
-    font-size: 1.2rem;
-    color: var(--white);
-    font-weight: 700;
-  }
-
-  .field {
-    margin-bottom: 1rem;
-  }
-
-  .field label {
-    display: block;
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: .75rem;
-    text-transform: uppercase;
-    letter-spacing: .05em;
-    color: var(--dim);
-    margin-bottom: .35rem;
-  }
-
-  button[type="submit"] {
-    background: var(--orange);
-    color: #14140d;
-    border: none;
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700;
-    font-size: 1rem;
-    padding: .7rem 1.6rem;
-    border-radius: 6px;
-    cursor: pointer;
-    width: 100%;
-  }
-  button[type="submit"]:hover { background: #ffab3d; }
-
-  .status {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: .8rem;
-    color: var(--dim);
-    text-align: center;
-    margin-top: .6rem;
-    min-height: 1.2em;
-  }
-
-  footer {
-    text-align: center;
-    color: var(--dim);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: .75rem;
-    margin-top: 2.5rem;
-    padding: 0 1.5rem;
-  }
-
-  #global-toast {
-    position: fixed;
-    left: 50%;
-    bottom: 1.2rem;
-    transform: translateX(-50%);
-    background: var(--bg-card);
-    border: 1px solid var(--orange-dim);
-    border-left: 4px solid var(--orange);
-    color: var(--white);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: .82rem;
-    padding: .8rem 1.1rem;
-    border-radius: 6px;
-    max-width: 90vw;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
-    z-index: 1000;
-    display: none;
-  }
-  #global-toast.error { border-left-color: #e0654a; border-color: #e0654a; }
-
-  .search-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: .5rem;
-    gap: .8rem;
-    flex-wrap: wrap;
-  }
-
-  .export-btn {
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--dim);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: .72rem;
-    padding: .35rem .7rem;
-    border-radius: 4px;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  .export-btn:hover { color: var(--orange); border-color: var(--orange-dim); }
-
-  .loading {
-    text-align: center;
-    color: var(--dim);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: .85rem;
-    padding: 2.5rem 1rem;
-  }
-
-  .battle-section {
-    max-width: 720px;
-    margin: 3rem auto 0;
-    padding: 2rem 1.5rem 3rem;
-    border-top: 1px dashed var(--border);
-    text-align: center;
-  }
-  .battle-title {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 1.2rem;
-    color: var(--white);
-    margin: 0 0 .3rem;
-  }
-  .battle-sub {
-    font-family: 'IBM Plex Mono', monospace;
-    color: var(--dim);
-    font-size: .8rem;
-    margin: 0 0 1.2rem;
-  }
-  .battle-arena {
-    display: flex;
-    align-items: stretch;
-    justify-content: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-  }
-  .battle-card {
-    flex: 1;
-    min-width: 140px;
-    max-width: 260px;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 1rem;
-    cursor: pointer;
-    color: var(--white);
-    text-align: left;
-    font-family: 'Inter', sans-serif;
-  }
-  .battle-card:hover:not(:disabled) { border-color: var(--orange); }
-  .battle-card:disabled { cursor: not-allowed; opacity: .6; }
-  .battle-word {
-    display: block;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--orange);
-    font-weight: 700;
-    margin-bottom: .4rem;
-  }
-  .battle-meaning { font-size: .85rem; color: var(--dim); margin: 0; }
-  .battle-vs {
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--dim);
-    font-weight: 800;
-    align-self: center;
-  }
-  .battle-result {
-    margin-top: 1.2rem;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--orange);
-    min-height: 1.4em;
-    font-size: .95rem;
-  }
-  .battle-next-btn {
-    margin-top: 1rem;
-    background: none;
-    border: 1px solid var(--orange-dim);
-    color: var(--orange);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: .85rem;
-    padding: .5rem 1.2rem;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  .battle-next-btn:hover { background: rgba(247,147,26,0.12); }
-  .battle-next-btn:disabled, .wheel-spin-btn:disabled, .blitz-start-btn:disabled {
-    opacity: .4;
-    cursor: not-allowed;
-  }
-
-  .game-remaining {
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: .72rem;
-    color: var(--dim);
-    margin: 0 0 1.2rem;
-  }
-
-  .blitz-meaning {
-    font-size: .95rem;
-    color: var(--white);
-    margin: 0 0 .5rem;
-    line-height: 1.5;
-  }
-  .blitz-timer {
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--orange);
-    font-weight: 700;
-    margin: 0 0 1rem;
-  }
-  .blitz-options {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: .7rem;
-  }
-  .blitz-option {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: .8rem;
-    color: var(--white);
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 700;
-    cursor: pointer;
-  }
-  .blitz-option:hover:not(:disabled) { border-color: var(--orange); }
-  .blitz-option:disabled { cursor: not-allowed; opacity: .6; }
-
-  .wheel-display {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 1.4rem;
-    font-weight: 800;
-    color: var(--orange);
-    background: var(--bg-card);
-    border: 1px solid var(--orange-dim);
-    border-radius: 6px;
-    padding: 1.2rem;
-    margin: 0 auto 1rem;
-    max-width: 260px;
-  }
-
-  .sentence-controls {
-    display: flex;
-    flex-direction: column;
-    gap: .7rem;
-    max-width: 320px;
-    margin: 0 auto 1.2rem;
-  }
-  .sentence-controls select,
-  .sentence-controls input {
-    font-family: 'Inter', sans-serif;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    color: var(--white);
-    border-radius: 6px;
-    padding: .65rem .8rem;
-    font-size: .95rem;
-    width: 100%;
-  }
-  .sentence-controls select:focus,
-  .sentence-controls input:focus {
-    outline: 2px solid var(--orange);
-    outline-offset: 2px;
-  }
-
-  .sentence-output {
-    min-height: 3.2rem;
-    font-family: 'Inter', sans-serif;
-    font-size: 1rem;
-    color: var(--white);
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 1.1rem 1.3rem;
-    margin: 0 auto 1.2rem;
-    max-width: 500px;
-    line-height: 1.6;
-    text-align: left;
-  }
-  .sentence-highlight {
-    color: var(--orange);
-    font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  .sentence-actions {
-    display: flex;
-    gap: .8rem;
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  .like-btn {
-    margin-top: 1rem;
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--dim);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: .85rem;
-    padding: .5rem 1.2rem;
-    border-radius: 6px;
-    cursor: pointer;
-  }
-  .like-btn:hover:not(:disabled) { border-color: #e0654a; color: #e0654a; }
-  .like-btn:disabled { cursor: not-allowed; opacity: .4; }
-  .like-btn.liked { color: #e0654a; border-color: #e0654a; opacity: 1; }
-
-  .hof-item {
-    display: flex;
-    align-items: flex-start;
-    gap: .8rem;
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: .7rem .9rem;
-  }
-  .hof-rank {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 800;
-    color: var(--orange);
-    min-width: 1.4rem;
-  }
-  .hof-text {
-    flex: 1;
-    font-size: .88rem;
-    line-height: 1.5;
-    color: var(--white);
-    text-align: left;
-  }
-  .hof-like-btn {
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--dim);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: .75rem;
-    padding: .3rem .6rem;
-    border-radius: 4px;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  .hof-like-btn:hover:not(:disabled) { border-color: #e0654a; color: #e0654a; }
-  .hof-like-btn:disabled { cursor: not-allowed; opacity: .5; }
-  .hof-like-btn.liked { color: #e0654a; border-color: #e0654a; opacity: 1; }
-
-  .hof-delete-btn {
-    background: none;
-    border: none;
-    color: var(--dim);
-    font-size: .85rem;
-    cursor: pointer;
-    padding: .3rem .4rem;
-  }
-  .hof-delete-btn:hover { color: var(--orange); }
 </style>
 </head>
 <body>
+<div class="app">
 
-<header>
-  <span class="glyph">₿</span>
-  <h1>s' Alemannia Wörterbuechli</h1>
-  <p class="sub">Slang &amp; Jargon &middot; gmeinsam gsammlet</p>
-</header>
+  <header class="top">
+    <div class="brand-row">
+      <div>
+        <p class="brand-eyebrow">Sammlung &amp; Bestimmung</p>
+        <h1 class="brand">Herbari<em>um</em></h1>
+      </div>
+      <img src="brand-illustration.png" alt="" class="brand-illustration">
+    </div>
+    <div class="top-actions">
+      <input type="text" id="search" placeholder="Suche nach Name, Familie, Tag …">
+      <button id="themeToggle" class="icon-btn" type="button" title="Dunkelmodus umschalten">🌙</button>
+      <span class="auth-controls">
+        <button id="authBtn" class="icon-btn" type="button" title="Login">🔒</button>
+        <div class="login-panel" id="loginPanel" hidden>
+          <input type="email" id="loginEmail" placeholder="E-Mail" autocomplete="username">
+          <input type="password" id="loginPassword" placeholder="Passwort" autocomplete="current-password">
+          <button type="button" id="loginSubmit">Einloggen</button>
+          <div class="login-error" id="loginError"></div>
+        </div>
+      </span>
+      <button id="addBtn">+ Neue Pflanze</button>
+    </div>
+  </header>
 
-<main>
-  <div class="notice" id="connection-notice" style="display:none;">⚠️ Firebase isch no net konfiguriert. Trag dein <code>firebaseConfig</code> im HTML-Code (Abschnitt "FIREBASE CONFIG") yy.</div>
+  <div class="stats-bar" id="statsBar"></div>
 
-  <div id="word-of-day-section"></div>
+  <div class="season-bar" id="seasonBar"></div>
 
-  <div class="lidaboard-section">
-    <h2 class="lidaboard-title">🏆 's Lidaboard</h2>
-    <ol class="lidaboard-list" id="lidaboard-list"></ol>
+  <div class="view-controls">
+    <span class="view-toggle">
+      <button id="viewGridBtn" class="icon-btn small" type="button" title="Karten-Raster">▦</button>
+      <button id="viewListBtn" class="icon-btn small" type="button" title="Listenansicht">☰</button>
+    </span>
+    <label><input type="checkbox" id="groupToggle"> Nach Familie gruppieren</label>
+    <label>Sortierung:
+      <select id="sortSelect">
+        <option value="name">Name A–Z</option>
+      </select>
+    </label>
+    <span class="backup-controls">
+      <button id="exportBtn" class="icon-btn small" type="button" title="Sammlung als Backup (JSON) herunterladen">⬇</button>
+      <button id="importBtn" class="icon-btn small" type="button" title="Backup (JSON) importieren">⬆</button>
+      <input type="file" id="importInput" accept="application/json" hidden>
+    </span>
   </div>
 
-  <div class="search-wrap">
-    <input type="text" id="search" placeholder="Suech noch ere Wörtli oder Bedeutig …" aria-label="Wörterbuch durchsuchen">
-    <div class="search-meta">
-      <span class="count" id="count"></span>
-      <button type="button" id="export-btn" class="export-btn">📥 Backup als JSON</button>
-    </div>
-  </div>
+  <div class="filters" id="filters"></div>
 
-  <div id="entries-list" aria-live="polite">
-    <div class="loading">⏳ Wörterbuech lädt …</div>
-  </div>
-
-  <form id="add-form">
-    <h2>Neus Wörtli yyschriibe</h2>
-    <div class="field">
-      <label for="word">Wort (Alemannisch) *</label>
-      <input type="text" id="word" required maxlength="25" placeholder="z. B. Muggeseggele">
-    </div>
-    <div class="field">
-      <label for="meaning">Bedeutung (Hochdeutsch) *</label>
-      <textarea id="meaning" required maxlength="100" rows="2" placeholder="Was heißt des uf Hochdeutsch?"></textarea>
-    </div>
-    <div class="field">
-      <label for="example">Beispielsatz (optional)</label>
-      <input type="text" id="example" maxlength="150" placeholder="z. B. Do fehlt bloß no a Muggeseggele!">
-    </div>
-    <button type="submit">Yyfüege</button>
-    <div class="status" id="status"></div>
-  </form>
-</main>
-
-<footer>
-  Geteiltes Wörterbuch &middot; sichtbar für alle mit Zugriff auf diese App.
-</footer>
-
-<section class="battle-section games-toggle-section">
-  <h2 class="battle-title">🎮 Mini-Games</h2>
-  <p class="battle-sub">Wort-Battle, Blitz-Rate und Wort-Rad – alli mit Tages-Limit.</p>
-  <button type="button" class="battle-next-btn" id="games-toggle-btn">🎮 Spiel zeige</button>
-</section>
-
-<div id="games-container" style="display:none;">
-
-<section class="battle-section">
-  <h2 class="battle-title">⚔️ Wort-Battle</h2>
-  <p class="battle-sub">Welches Wörtli isch lustiger? Klick eis vo de zwei aa.</p>
-  <p class="game-remaining" id="battle-remaining"></p>
-  <div class="battle-arena" id="battle-arena"></div>
-  <div class="battle-result" id="battle-result"></div>
-  <button type="button" class="battle-next-btn" id="battle-next-btn">Nächschti Runde 🔁</button>
-</section>
-
-<section class="battle-section">
-  <h2 class="battle-title">🎯 Blitz-Rate</h2>
-  <p class="battle-sub">Errat s Wort zur Bedeutig, bevor d Zit abglauft!</p>
-  <p class="game-remaining" id="blitz-remaining"></p>
-  <div id="blitz-arena"></div>
-  <div class="battle-result" id="blitz-result"></div>
-  <button type="button" class="battle-next-btn" id="blitz-start-btn">Runde starte 🎯</button>
-</section>
-
-<section class="battle-section">
-  <h2 class="battle-title">🎡 Wort-Rad</h2>
-  <p class="battle-sub">Eimol am Tag drehe für en zufällige Bonus oder Malus.</p>
-  <p class="game-remaining" id="wheel-remaining"></p>
-  <div class="wheel-display" id="wheel-display">?</div>
-  <div class="battle-result" id="wheel-result"></div>
-  <button type="button" class="battle-next-btn" id="wheel-spin-btn">Rad drehe 🎡</button>
-</section>
-
+  <div class="grid" id="grid"></div>
 </div>
 
-<section class="battle-section games-toggle-section">
-  <h2 class="battle-title">📝 Sätz & Hall-of-Fame</h2>
-  <p class="battle-sub">Lustigi Sätz generiere und d beschte in de Hall-of-Fame verewige.</p>
-  <button type="button" class="battle-next-btn" id="sentence-toggle-btn">📝 Satz-Generator zeige</button>
-</section>
-
-<div id="sentence-container" style="display:none;">
-
-<section class="battle-section">
-  <h2 class="battle-title">📝 Satz-Generator</h2>
-  <p class="battle-sub">Wähl en Name und lueg, was für en lustige Satz drus wird.</p>
-  <div class="sentence-controls">
-    <select id="sentence-name-select">
-      <option value="">-- Name wähle --</option>
-      <option value="Lida">Lida</option>
-      <option value="Dwarf">Dwarf</option>
-      <option value="Tank">Tank</option>
-      <option value="Buur">Buur</option>
-      <option value="Haikeu">Haikeu</option>
-      <option value="Schorle">Schorle</option>
-      <option value="Maddel">Maddel</option>
-      <option value="Ziege">Ziege</option>
-      <option value="__random__">🎲 Zufälliger Name</option>
-      <option value="__custom__">✏️ Eigener Name …</option>
-    </select>
-    <input type="text" id="sentence-custom-name" maxlength="20" placeholder="Din Name" style="display:none;">
-  </div>
-  <div class="sentence-output" id="sentence-output">Wähl en Name und klick uf „Satz generiere".</div>
-  <div class="sentence-actions">
-    <button type="button" class="battle-next-btn" id="sentence-generate-btn">Satz generiere 📝</button>
-    <button type="button" class="like-btn" id="sentence-like-btn" disabled>❤️ Gfallt mr</button>
-  </div>
-  <p class="game-remaining" id="sentence-like-status"></p>
-</section>
-
-<section class="battle-section">
-  <h2 class="battle-title">🏛️ Satz-Hall-of-Fame</h2>
-  <p class="battle-sub">D beschte Sätz vo de Gruppe – für immer verewigt (top 10).</p>
-  <ol class="lidaboard-list" id="hall-of-fame-list"></ol>
-  <button type="button" class="battle-next-btn" id="hof-toggle-btn" style="display:none; margin-top: 1rem;">🗂️ Alli Sätz azeige</button>
-  <ol class="lidaboard-list" id="hall-of-fame-full-list" style="display:none; margin-top: 1rem;"></ol>
-</section>
-
+<div class="overlay" id="overlay">
+  <div class="sheet" id="sheet"></div>
 </div>
 
-<div id="global-toast" role="alert"></div>
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+import {
+  getFirestore, collection, getDocs, doc, setDoc, deleteDoc
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+import {
+  getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
 
-<script>
-/* ======= FIREBASE CONFIG =======
-   Ersetz die Werte unten mit deinen eigenen aus der Firebase-Konsole:
-   Projekteinstellungen -> Deine Apps -> Web-App -> SDK-Konfiguration.
-   Wichtig: databaseURL muss gesetzt sein (Realtime Database, nicht Firestore). */
+// ==== FIREBASE-KONFIGURATION ====
 const firebaseConfig = {
-  apiKey: "AIzaSyCJfQqYISmOv0J5QfVz8V7re6XCqNLL5Hc",
-  authDomain: "jargon-2bcd1.firebaseapp.com",
-  databaseURL: "https://jargon-2bcd1-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "jargon-2bcd1",
-  storageBucket: "jargon-2bcd1.firebasestorage.app",
-  messagingSenderId: "842248373476",
-  appId: "1:842248373476:web:46dc44d8e1c52901b958f1"
+  apiKey: "AIzaSyAZrE-mylzpDlqZr4OyMADDyG_yXjrLqaA",
+  authDomain: "herbarium-9ee47.firebaseapp.com",
+  projectId: "herbarium-9ee47",
+  storageBucket: "herbarium-9ee47.firebasestorage.app",
+  messagingSenderId: "998808054358",
+  appId: "1:998808054358:web:5889a5f1f9e22eff97a9f7"
 };
-/* ================================ */
+// =================================
 
-let toastTimer = null;
-function showToast(msg, isError) {
-  const el = document.getElementById('global-toast');
-  if (!el) return;
-  el.textContent = msg;
-  el.classList.toggle('error', !!isError);
-  el.style.display = 'block';
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { el.style.display = 'none'; }, 4000);
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+const auth = getAuth(fbApp);
+const plantsCol = collection(db, 'plants');
+
+let currentUser = null;
+onAuthStateChanged(auth, (user)=>{
+  currentUser = user;
+  updateAuthUI();
+});
+
+// Nur für Schreibzugriffe nötig: prüft, ob ein eingeloggter Nutzer vorhanden ist.
+// Lesen (loadPlants) läuft unabhängig davon, da Firestore-Regeln Lesen öffentlich erlauben.
+function ensureAuth(){
+  if(currentUser) return Promise.resolve(currentUser);
+  return Promise.reject(new Error('Bitte zuerst einloggen, um Änderungen zu speichern.'));
 }
 
-function firebaseErrorHandler(context) {
-  return (err) => {
-    console.error(context, err);
-    showToast(`Konnt nid gspeichert werde (${context}). Bitte nomol probiere.`, true);
+let plants = [];
+let activeFilter = null;
+let showFavoritesOnly = false;
+let seasonOpen = false;
+let groupByFamily = false;
+let viewMode = 'grid';
+try{ viewMode = localStorage.getItem('herbarium-view') || 'grid'; }catch(e){}
+let sortMode = 'name';
+let currentId = null;
+
+const TAGS = [
+  {key:'heilpflanze', label:'Heilpflanze'},
+  {key:'giftig', label:'Giftig'},
+  {key:'bedingt_giftig', label:'Bedingt giftig'},
+  {key:'speisepflanze', label:'Speisepflanze'},
+  {key:'zierpflanze', label:'Zierpflanze'},
+  {key:'baum', label:'Baum'},
+  {key:'strauch', label:'Strauch'},
+  {key:'sonstige', label:'Sonstige'},
+];
+
+const SECTION_DEFS = [
+  {key:'bestimmung', label:'Bestimmungsmerkmale'},
+  {key:'pflanzenteile', label:'Verwendbare Pflanzenteile'},
+  {key:'inhaltsstoffe', label:'Inhaltsstoffe'},
+  {key:'heilwirkung', label:'Heilwirkung'},
+  {key:'anwendung', label:'Anwendung'},
+  {key:'rezepte', label:'Rezepte'},
+  {key:'warnhinweise', label:'Warnhinweise & Giftigkeit', warn:true},
+  {key:'notizen', label:'Notizen'},
+];
+
+const MONTHS = ['Jan','Feb','Mär','Apr','Mai','Jun','Jul','Aug','Sep','Okt','Nov','Dez'];
+const SAMMEL_FIELDS = [
+  {key:'sammelKraut', shortLabel:'Kraut'},
+  {key:'sammelBluete', shortLabel:'Blüte'},
+  {key:'sammelSamen', shortLabel:'Samen'},
+  {key:'sammelWurzel', shortLabel:'Wurzel'},
+];
+
+const leafSVG = `<svg class="leaf-watermark" viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5">
+  <path d="M32 4 C50 14 54 34 32 60 C10 34 14 14 32 4 Z"/>
+  <path d="M32 8 L32 56"/>
+  <path d="M32 20 C24 24 20 28 16 34"/>
+  <path d="M32 20 C40 24 44 28 48 34"/>
+  <path d="M32 34 C25 38 21 42 18 46"/>
+  <path d="M32 34 C39 38 43 42 46 46"/>
+</svg>`;
+
+async function loadPlants(){
+  plants = [];
+  document.getElementById('grid').innerHTML = `<div class="empty-state">
+    <div class="spinner"></div>
+    <span class="big">Sammlung wird geladen …</span>
+  </div>`;
+  try{
+    const snap = await getDocs(plantsCol);
+    plants = snap.docs.map(d => d.data());
+  }catch(e){
+    console.error('Firebase-Ladefehler:', e);
+    alert('Verbindung zu Firebase fehlgeschlagen. Prüfe firebaseConfig und die Firestore-Regeln (siehe Konsole für Details).');
+  }
+  renderFilters();
+  renderGrid();
+}
+
+function newPlant(){
+  const id = 'p'+Date.now()+Math.random().toString(36).slice(2,7);
+  return {
+    id, commonName:'Neue Pflanze', latinName:'', family:'', volksnamen:'',
+    tags:[], customTags:[], photos:[], thumb:'', favorite:false, confusables:[],
+    bestimmung:'', pflanzenteile:'', inhaltsstoffe:'', heilwirkung:'', anwendung:'', rezepte:'',
+    warnhinweise:'', notizen:'',
+    bluetezeit:[], sammelKraut:[], sammelBluete:[], sammelSamen:[], sammelWurzel:[]
   };
 }
 
-const seedEntries = {
-  a1: { word: 'Muggeseggele', meaning: 'Sehr kleine Maßeinheit; wörtlich der Hodensack einer Fliege.', example: 'Do fehlt bloß no a Muggeseggele!', votes: 3 },
-  a2: { word: 'Käpsele', meaning: 'Ein schlauer, cleverer Mensch.', example: 'Du bisch aber a Käpsele!', votes: 1 },
-  a3: { word: 'Chuchichäschtli', meaning: 'Küchenschrank; gilt als berüchtigt schwer auszusprechen.', example: 'Stell s Gschirr wieder is Chuchichäschtli.', votes: 2 },
-  a4: { word: 'Bappenheimer', meaning: 'Ein etwas einfältiger oder tollpatschiger Mensch.', example: 'So a Bappenheimer, jetzt hot er s wieder falsch gmacht.', votes: 0 },
-  a5: { word: 'Gwundrig', meaning: 'Neugierig, wissbegierig.', example: 'Sei doch net so gwundrig!', votes: 0 },
-  a6: { word: 'Àde', meaning: 'Abschiedsgruß, entspricht "Auf Wiedersehen".', example: 'Àde, bis bald!', votes: 0 }
-};
-
-let entries = [];
-let entriesRef = null;
-let hallOfFameRef = null;
-let hallOfFame = [];
-let currentSentenceText = '';
-let currentSentenceSaved = false;
-
-const SENTENCE_LIKES_KEY = 'woerterbuechli-sentencelikes';
-let mySentenceLikes = {};
-try { mySentenceLikes = JSON.parse(localStorage.getItem(SENTENCE_LIKES_KEY) || '{}'); } catch (err) { mySentenceLikes = {}; }
-
-function saveMySentenceLikes() {
-  try { localStorage.setItem(SENTENCE_LIKES_KEY, JSON.stringify(mySentenceLikes)); } catch (err) { /* ignore */ }
-}
-let editingId = null;
-const isConfigured = !Object.values(firebaseConfig).some(v => String(v).startsWith('DEIN'));
-
-/* Ein Vote (hoch oder runter) pro Browser/Gerät.
-   Wird lokal gemerkt, damit man nicht mehrfach voten kann. */
-const VOTES_KEY = 'woerterbuechli-myvotes';
-let myVotes = {};
-try { myVotes = JSON.parse(localStorage.getItem(VOTES_KEY) || '{}'); } catch (err) { myVotes = {}; }
-
-function saveMyVotes() {
-  try { localStorage.setItem(VOTES_KEY, JSON.stringify(myVotes)); } catch (err) { /* ignore */ }
-}
-
-/* ======= Tages-Limits für d Spiel (Battle, Blitz-Rate, Wort-Rad) =======
-   Wird lokal pro Browser/Gerät gezählt und setzt sich jede Kalendertag zrugg. */
-const GAME_LIMITS_KEY = 'woerterbuechli-game-limits';
-const BATTLE_MAX = 10;
-const BLITZ_MAX = 10;
-const WHEEL_MAX = 1;
-
-function getTodayStr() {
-  const d = new Date();
-  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-}
-
-function loadGameLimits() {
-  let data = {};
-  try { data = JSON.parse(localStorage.getItem(GAME_LIMITS_KEY) || '{}'); } catch (err) { data = {}; }
-  if (data.date !== getTodayStr()) {
-    data = { date: getTodayStr(), battle: 0, blitz: 0, wheel: 0 };
+async function savePlant(p){
+  try{
+    await ensureAuth();
+    await setDoc(doc(db, 'plants', p.id), p);
+  }catch(e){
+    console.error('Firebase-Speicherfehler:', e);
+    alert('Speichern in Firebase fehlgeschlagen: ' + e.message);
   }
-  return data;
+}
+async function deletePlantStorage(id){
+  try{
+    await ensureAuth();
+    await deleteDoc(doc(db, 'plants', id));
+  }catch(e){
+    console.error('Firebase-Löschfehler:', e);
+    alert('Löschen in Firebase fehlgeschlagen: ' + e.message);
+  }
 }
 
-let gameLimits = loadGameLimits();
-
-function saveGameLimits() {
-  try { localStorage.setItem(GAME_LIMITS_KEY, JSON.stringify(gameLimits)); } catch (err) { /* ignore */ }
+function sortPlants(list){
+  const arr = [...list];
+  arr.sort((a,b)=> (a.commonName||'').localeCompare(b.commonName||'', 'de'));
+  return arr;
 }
 
-function updateGameRemainingDisplays() {
-  const battleLeft = Math.max(0, BATTLE_MAX - gameLimits.battle);
-  const blitzLeft = Math.max(0, BLITZ_MAX - gameLimits.blitz);
-  const wheelLeft = Math.max(0, WHEEL_MAX - gameLimits.wheel);
-
-  const battleEl = document.getElementById('battle-remaining');
-  const blitzEl = document.getElementById('blitz-remaining');
-  const wheelEl = document.getElementById('wheel-remaining');
-  if (battleEl) battleEl.textContent = `${battleLeft}/${BATTLE_MAX} Runde hüt no übrig`;
-  if (blitzEl) blitzEl.textContent = `${blitzLeft}/${BLITZ_MAX} Runde hüt no übrig`;
-  if (wheelEl) wheelEl.textContent = `${wheelLeft}/${WHEEL_MAX} Dreh hüt no übrig`;
-
-  const battleNextBtn = document.getElementById('battle-next-btn');
-  const blitzStartBtn = document.getElementById('blitz-start-btn');
-  const wheelSpinBtn = document.getElementById('wheel-spin-btn');
-  if (battleNextBtn) battleNextBtn.disabled = battleLeft <= 0;
-  if (blitzStartBtn) blitzStartBtn.disabled = blitzLeft <= 0;
-  if (wheelSpinBtn) wheelSpinBtn.disabled = wheelLeft <= 0;
+function renderStats(){
+  const el = document.getElementById('statsBar');
+  if(!el) return;
+  if(plants.length === 0){ el.innerHTML = ''; return; }
+  const baumCount = plants.filter(p => (p.tags||[]).includes('baum')).length;
+  const strauchCount = plants.filter(p => (p.tags||[]).includes('strauch')).length;
+  const confusableCount = plants.filter(p => (p.confusables||[]).length > 0).length;
+  const parts = [`<strong>${plants.length}</strong> Pflanzen`];
+  if(baumCount) parts.push(`<strong>${baumCount}</strong> Bäume`);
+  if(strauchCount) parts.push(`<strong>${strauchCount}</strong> Sträucher`);
+  if(confusableCount) parts.push(`<strong>${confusableCount}</strong> mit Verwechslungsgefahr`);
+  el.innerHTML = parts.join(' · ');
 }
 
-document.getElementById('games-toggle-btn').addEventListener('click', () => {
-  const container = document.getElementById('games-container');
-  const btn = document.getElementById('games-toggle-btn');
-  const isHidden = container.style.display === 'none';
-  container.style.display = isHidden ? 'block' : 'none';
-  btn.textContent = isHidden ? 'Spiel verstecke 🔼' : '🎮 Spiel zeige';
-});
+function renderCurrentSeason(){
+  const el = document.getElementById('seasonBar');
+  if(!el) return;
+  const m = new Date().getMonth();
+  const matches = plants.filter(p =>
+    (p.bluetezeit||[]).includes(m) ||
+    SAMMEL_FIELDS.some(f => (p[f.key]||[]).includes(m))
+  ).sort((a,b)=> (a.commonName||'').localeCompare(b.commonName||'', 'de'));
 
-document.getElementById('sentence-toggle-btn').addEventListener('click', () => {
-  const container = document.getElementById('sentence-container');
-  const btn = document.getElementById('sentence-toggle-btn');
-  const isHidden = container.style.display === 'none';
-  container.style.display = isHidden ? 'block' : 'none';
-  btn.textContent = isHidden ? 'Satz-Generator verstecke 🔼' : '📝 Satz-Generator zeige';
-});
-
-function initFirebase() {
-  if (!isConfigured) {
-    document.getElementById('connection-notice').style.display = 'block';
-    entries = Object.entries(seedEntries).map(([id, e]) => ({ id, ...e }));
-    render();
-    renderBattle();
-    updateGameRemainingDisplays();
-    battleStarted = true;
-    document.getElementById('hall-of-fame-list').innerHTML = '<p class="battle-sub">Hall-of-Fame bruucht e echti Firebase-Verbindig.</p>';
+  if(matches.length === 0){
+    el.style.display = 'none';
+    el.innerHTML = '';
     return;
   }
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-  entriesRef = db.ref('entries');
-  hallOfFameRef = db.ref('sentences');
-
-  entriesRef.once('value', snap => {
-    if (!snap.exists()) entriesRef.set(seedEntries).catch(firebaseErrorHandler('Wörterbuch initialisiere'));
-  });
-
-  hallOfFameRef.on('value', snap => {
-    const data = snap.val() || {};
-    hallOfFame = Object.entries(data).map(([id, s]) => ({ id, ...s }));
-    renderHallOfFame();
-  });
-
-  entriesRef.on('value', snap => {
-    const data = snap.val() || {};
-    entries = Object.entries(data).map(([id, e]) => ({ id, ...e }));
-    render();
-    if (!battleStarted) {
-      renderBattle();
-      updateGameRemainingDisplays();
-      battleStarted = true;
-    }
-  });
-}
-
-function setStatus(msg, isError) {
-  const el = document.getElementById('status');
-  el.textContent = msg;
-  el.style.color = isError ? 'var(--orange)' : 'var(--dim)';
-  if (msg) setTimeout(() => { el.textContent = ''; }, 2500);
-}
-
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
-}
-
-function getTicker(word) {
-  return '$' + word.replace(/[^a-zA-ZàáâäèéêëìíîïòóôöùúûüÀÁÂÄÈÉÊËÌÍÎÏÒÓÔÖÙÚÛÜ]/g, '').toUpperCase().slice(0, 5);
-}
-
-function voteClass(votes) {
-  if (votes > 0) return 'positive';
-  if (votes < 0) return 'negative';
-  return 'neutral';
-}
-
-function formatVotes(votes) {
-  const v = votes || 0;
-  const sign = v > 0 ? '+' : '';
-  return `${sign}${v.toFixed(2)}%`;
-}
-
-function hashString(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) { hash = (hash * 31 + str.charCodeAt(i)) >>> 0; }
-  return hash;
-}
-
-function getWordOfDay(list) {
-  if (!list.length) return null;
-  const sorted = [...list].sort((a, b) => a.id.localeCompare(b.id));
-  const now = new Date();
-  const seed = `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
-  const idx = hashString(seed) % sorted.length;
-  return sorted[idx];
-}
-
-function renderWordOfDay() {
-  const el = document.getElementById('word-of-day-section');
-  const word = getWordOfDay(entries);
-  if (!word) { el.innerHTML = ''; return; }
+  el.style.display = '';
   el.innerHTML = `
-    <div class="daily-card">
-      <p class="daily-label">🎲 Wörtli vom Tag &middot; ${getTicker(word.word)}</p>
-      <span class="daily-word">${escapeHtml(word.word)}</span>
-      <p class="daily-meaning">${escapeHtml(word.meaning)}</p>
-      ${word.example ? `<p class="daily-example">${escapeHtml(word.example)}</p>` : ''}
+    <details class="season-details" ${seasonOpen ? 'open' : ''}>
+      <summary class="season-title">🌿 Was ist gerade dran? <span class="season-count">(${matches.length})</span><span class="season-month">${MONTHS[m]}</span></summary>
+      <div class="season-chips">
+        ${matches.map(p=>`<button type="button" class="season-chip" data-id="${p.id}">${escapeHtml(p.commonName)}</button>`).join('')}
+      </div>
+    </details>
+  `;
+  const detailsEl = el.querySelector('.season-details');
+  detailsEl.addEventListener('toggle', ()=>{ seasonOpen = detailsEl.open; });
+  el.querySelectorAll('.season-chip').forEach(chip=>{
+    chip.onclick = ()=> openSheet(chip.dataset.id);
+  });
+}
+
+function renderFilters(){
+  const el = document.getElementById('filters');
+  const counts = {};
+  plants.forEach(p => (p.tags||[]).forEach(t => counts[t]=(counts[t]||0)+1));
+  const customCounts = {};
+  plants.forEach(p => (p.customTags||[]).forEach(t => customCounts[t]=(customCounts[t]||0)+1));
+  const favCount = plants.filter(p=>p.favorite).length;
+  el.innerHTML = '';
+
+  const allChip = document.createElement('button');
+  allChip.className = 'chip-filter' + (activeFilter===null && !showFavoritesOnly ? ' active':'');
+  allChip.textContent = `Alle (${plants.length})`;
+  allChip.onclick = ()=>{activeFilter=null; showFavoritesOnly=false; renderFilters(); renderGrid();};
+  el.appendChild(allChip);
+
+  if(favCount>0){
+    const favChip = document.createElement('button');
+    favChip.className = 'chip-filter' + (showFavoritesOnly ? ' active':'');
+    favChip.textContent = `★ Favoriten (${favCount})`;
+    favChip.onclick = ()=>{ showFavoritesOnly = !showFavoritesOnly; activeFilter=null; renderFilters(); renderGrid(); };
+    el.appendChild(favChip);
+  }
+
+  TAGS.forEach(t=>{
+    if(!counts[t.key]) return;
+    const chip = document.createElement('button');
+    chip.className = 'chip-filter' + (activeFilter===t.key ? ' active':'');
+    chip.textContent = `${t.label} (${counts[t.key]})`;
+    chip.onclick = ()=>{activeFilter = activeFilter===t.key ? null : t.key; showFavoritesOnly=false; renderFilters(); renderGrid();};
+    el.appendChild(chip);
+  });
+
+  Object.keys(customCounts).sort((a,b)=>a.localeCompare(b,'de')).forEach(tag=>{
+    const filterKey = '#'+tag;
+    const chip = document.createElement('button');
+    chip.className = 'chip-filter' + (activeFilter===filterKey ? ' active':'');
+    chip.textContent = `#${tag} (${customCounts[tag]})`;
+    chip.onclick = ()=>{activeFilter = activeFilter===filterKey ? null : filterKey; showFavoritesOnly=false; renderFilters(); renderGrid();};
+    el.appendChild(chip);
+  });
+
+  renderStats();
+  renderCurrentSeason();
+}
+
+function renderGrid(){
+  const grid = document.getElementById('grid');
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  let list = plants;
+  if(activeFilter){
+    if(activeFilter.startsWith('#')){
+      const tagName = activeFilter.slice(1);
+      list = list.filter(p => (p.customTags||[]).includes(tagName));
+    } else {
+      list = list.filter(p => (p.tags||[]).includes(activeFilter));
+    }
+  }
+  if(showFavoritesOnly) list = list.filter(p => p.favorite);
+  if(q) list = list.filter(p =>
+    (p.commonName||'').toLowerCase().includes(q) ||
+    (p.latinName||'').toLowerCase().includes(q) ||
+    (p.family||'').toLowerCase().includes(q) ||
+    (p.volksnamen||'').toLowerCase().includes(q) ||
+    (p.tags||[]).some(t=>t.includes(q)) ||
+    (p.customTags||[]).some(t=>t.includes(q)) ||
+    SECTION_DEFS.some(def => (p[def.key]||'').toLowerCase().includes(q))
+  );
+  list = sortPlants(list);
+
+  grid.innerHTML = '';
+  grid.classList.toggle('list-mode', viewMode === 'list');
+  if(list.length===0){
+    grid.innerHTML = `<div class="empty-state">
+      <span class="big">Noch kein Beleg abgelegt.</span>
+      Lege deine erste Pflanze an — Klick auf „+ Neue Pflanze".
+    </div>`;
+    return;
+  }
+
+  const buildItem = viewMode === 'list' ? buildListRow : buildCard;
+
+  if(groupByFamily){
+    const groups = {};
+    list.forEach(p=>{
+      const fam = (p.family && p.family.trim()) ? p.family.trim() : 'Ohne Familie';
+      (groups[fam] = groups[fam] || []).push(p);
+    });
+    Object.keys(groups).sort((a,b)=>a.localeCompare(b,'de')).forEach(fam=>{
+      const details = document.createElement('details');
+      details.className = 'family-group';
+      details.open = true;
+      const summary = document.createElement('summary');
+      summary.textContent = `${fam} (${groups[fam].length})`;
+      details.appendChild(summary);
+      const innerGrid = document.createElement('div');
+      innerGrid.className = viewMode === 'list' ? 'grid family-grid list-mode' : 'grid family-grid';
+      groups[fam].forEach(p=> innerGrid.appendChild(buildItem(p)));
+      details.appendChild(innerGrid);
+      grid.appendChild(details);
+    });
+  } else {
+    list.forEach(p=> grid.appendChild(buildItem(p)));
+  }
+}
+
+function buildCard(p){
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.onclick = ()=> openSheet(p.id);
+  card.innerHTML = `
+    <div class="card-photo">
+      ${p.thumb ? `<img src="${p.thumb}" alt="${escapeHtml(p.commonName)}">`
+        : (p.photos && p.photos.length ? `<img src="${p.photos[0]}" alt="${escapeHtml(p.commonName)}">` : leafSVG)}
+      ${(p.confusables||[]).length > 0 ? `<span class="confuse-badge" title="Verwechslungsgefahr hinterlegt">⚠</span>` : ''}
+      <button type="button" class="fav-star ${p.favorite?'on':''}" title="Favorit">${p.favorite?'★':'☆'}</button>
+    </div>
+    <div class="card-body">
+      <div class="card-common">${escapeHtml(p.commonName || 'Unbenannt')}</div>
+      <div class="card-latin">${escapeHtml(p.latinName || '—')}</div>
+      ${p.volksnamen ? `<div class="card-volksnamen">${escapeHtml(p.volksnamen)}</div>` : ''}
+      <div class="card-tags">
+        ${(p.tags||[]).map(t=>`<span class="tag ${t}">${TAGS.find(x=>x.key===t)?.label||t}</span>`).join('')}
+        ${(p.customTags||[]).map(t=>`<span class="tag custom">#${escapeHtml(t)}</span>`).join('')}
+      </div>
+    </div>
+  `;
+  card.querySelector('.fav-star').onclick = async (e)=>{
+    e.stopPropagation();
+    p.favorite = !p.favorite;
+    await savePlant(p);
+    renderFilters();
+    renderGrid();
+  };
+  return card;
+}
+
+function buildListRow(p){
+  const row = document.createElement('div');
+  row.className = 'list-row';
+  row.onclick = ()=> openSheet(p.id);
+  const thumbSrc = p.thumb || (p.photos && p.photos.length ? p.photos[0] : '');
+  row.innerHTML = `
+    <div class="list-thumb">${thumbSrc ? `<img src="${thumbSrc}" alt="${escapeHtml(p.commonName)}">` : leafSVG}</div>
+    <div class="list-main">
+      <div class="list-common">${escapeHtml(p.commonName || 'Unbenannt')}</div>
+      <div class="list-latin">${escapeHtml(p.latinName || '—')}</div>
+      <div class="list-tags">
+        ${(p.tags||[]).map(t=>`<span class="tag ${t}">${TAGS.find(x=>x.key===t)?.label||t}</span>`).join('')}
+        ${(p.customTags||[]).map(t=>`<span class="tag custom">#${escapeHtml(t)}</span>`).join('')}
+      </div>
+    </div>
+    <div class="list-actions">
+      ${(p.confusables||[]).length > 0 ? `<span class="list-confuse" title="Verwechslungsgefahr hinterlegt">⚠</span>` : ''}
+      <button type="button" class="fav-star static ${p.favorite?'on':''}" title="Favorit">${p.favorite?'★':'☆'}</button>
+    </div>
+  `;
+  row.querySelector('.fav-star').onclick = async (e)=>{
+    e.stopPropagation();
+    p.favorite = !p.favorite;
+    await savePlant(p);
+    renderFilters();
+    renderGrid();
+  };
+  return row;
+}
+
+function autoResizeTextarea(el){
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
+function escapeHtml(s){
+  return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function asMonthArray(values){
+  return Array.isArray(values) ? values : [];
+}
+
+function computeSegClasses(values, i, accent){
+  const arr = asMonthArray(values);
+  if(!arr.includes(i)) return '';
+  const prevOn = arr.includes(i-1);
+  const nextOn = arr.includes(i+1);
+  let cls = 'on';
+  if(accent) cls += ' accent';
+  if(!prevOn) cls += ' seg-start';
+  if(!nextOn) cls += ' seg-end';
+  return cls;
+}
+
+function harvestTrackHtml(key, values, accent){
+  return MONTHS.map((_,i)=>`<button type="button" class="harvest-cell ${computeSegClasses(values,i,accent)}" data-field="${key}" data-month="${i}"></button>`).join('');
+}
+
+function harvestCalendarHtml(p){
+  const sammelRows = SAMMEL_FIELDS.map(f=>`
+    <div class="harvest-row">
+      <span class="harvest-label">${f.shortLabel}</span>
+      <div class="harvest-track" data-field="${f.key}" data-accent="0">${harvestTrackHtml(f.key, p[f.key], false)}</div>
+    </div>
+  `).join('');
+
+  return `
+    <div class="section harvest-section">
+      <label>Erntekalender</label>
+      <div class="harvest-calendar">
+        <div class="harvest-header">
+          <span class="harvest-label"></span>
+          <div class="harvest-track header">
+            ${MONTHS.map(m=>`<span class="harvest-month-label">${m}</span>`).join('')}
+          </div>
+        </div>
+        <div class="harvest-row accent">
+          <span class="harvest-label">Blütezeit</span>
+          <div class="harvest-track" data-field="bluetezeit" data-accent="1">${harvestTrackHtml('bluetezeit', p.bluetezeit, true)}</div>
+        </div>
+        <div class="harvest-divider"></div>
+        ${sammelRows}
+      </div>
     </div>
   `;
 }
 
-function renderLidaboard() {
-  const list = document.getElementById('lidaboard-list');
-  const top = [...entries]
-    .sort((a, b) => (b.votes - a.votes) || a.word.localeCompare(b.word, 'de'))
-    .slice(0, 5);
-
-  if (!top.length) { list.innerHTML = ''; return; }
-
-  list.innerHTML = top.map((e, i) => `
-    <li class="lidaboard-item">
-      <span class="lidaboard-rank">#${i + 1}</span>
-      <span class="lidaboard-word">${escapeHtml(e.word)}</span>
-      <span class="lidaboard-ticker">${getTicker(e.word)}</span>
-      <span class="vote-count ${voteClass(e.votes)}">${formatVotes(e.votes)}</span>
-    </li>
-  `).join('');
+function attachHarvestTrackListeners(track, key, p){
+  const accent = track.dataset.accent === '1';
+  track.querySelectorAll('.harvest-cell').forEach(cell=>{
+    cell.onclick = async ()=>{
+      const m = parseInt(cell.dataset.month, 10);
+      p[key] = asMonthArray(p[key]);
+      if(p[key].includes(m)) p[key] = p[key].filter(x=>x!==m);
+      else p[key] = [...p[key], m];
+      track.innerHTML = harvestTrackHtml(key, p[key], accent);
+      attachHarvestTrackListeners(track, key, p);
+      await savePlant(p);
+    };
+  });
 }
 
-function exportBackup() {
-  if (!entries.length) { setStatus('Nix zum Sichere do.', true); return; }
-  const dataStr = JSON.stringify(entries, null, 2);
-  const blob = new Blob([dataStr], { type: 'application/json' });
+function textSectionHtml(def, p){
+  return `
+    <div class="section ${def.warn?'warn':''}">
+      <label>${def.label}</label>
+      <textarea id="f-${def.key}" placeholder="…">${escapeHtml(p[def.key])}</textarea>
+    </div>
+  `;
+}
+
+function openSheetEdit(id){
+  currentId = id;
+  const p = plants.find(x=>x.id===id);
+  const sheet = document.getElementById('sheet');
+
+  const bestimmungsBlock = [SECTION_DEFS[0], SECTION_DEFS[1], SECTION_DEFS[2]]
+    .map(def => textSectionHtml(def, p)).join('');
+  const wirkBlock = [SECTION_DEFS[3], SECTION_DEFS[4], SECTION_DEFS[5]]
+    .map(def => textSectionHtml(def, p)).join('');
+  const abschlussBlock = [SECTION_DEFS[6], SECTION_DEFS[7]]
+    .map(def => textSectionHtml(def, p)).join('');
+  const harvestBlock = harvestCalendarHtml(p);
+
+  sheet.innerHTML = `
+    <div class="sheet-header">
+      <div class="sheet-title-block">
+        <input class="field-common" id="f-commonName" value="${escapeHtml(p.commonName)}" placeholder="Deutscher Name">
+        <div class="dup-warning" id="dupWarning">⚠ Es gibt bereits eine Pflanze mit diesem Namen</div>
+        <input class="field-latin" id="f-latinName" value="${escapeHtml(p.latinName)}" placeholder="Botanischer Name (lat.)">
+      </div>
+      <div class="sheet-header-actions">
+        <button type="button" class="sheet-fav" id="sheetFav" aria-label="Favorit">${p.favorite?'★':'☆'}</button>
+        <button type="button" class="icon-btn small" id="doneBtn" title="Fertig – zur Ansicht">✓</button>
+        <button class="sheet-close" id="closeSheet" aria-label="Schließen">✕</button>
+      </div>
+    </div>
+
+    <div class="sheet-meta-row">
+      <div class="meta-item"><label>Familie</label><input id="f-family" value="${escapeHtml(p.family)}" placeholder="z. B. Lamiaceae"></div>
+      <div class="meta-item"><label>Volkstümliche Namen</label><input id="f-volksnamen" value="${escapeHtml(p.volksnamen)}" placeholder="z. B. Bauernlorchel"></div>
+    </div>
+
+    <div class="photo-gallery" id="photoGallery"></div>
+
+    <div class="tags-edit">
+      <label>Kategorien</label>
+      <div class="tag-options" id="tagOptions">
+        ${TAGS.map(t=>`<button type="button" class="tag-opt ${t.key} ${(p.tags||[]).includes(t.key)?'on':''}" data-tag="${t.key}">${t.label}</button>`).join('')}
+      </div>
+    </div>
+
+    <div class="custom-tags-edit">
+      <label>Eigene Tags</label>
+      <div class="custom-tag-list" id="customTagList"></div>
+      <input type="text" id="customTagInput" class="confusable-add" placeholder="Eigenes Tag eingeben und Enter drücken …">
+    </div>
+
+    <div class="sections">
+      ${bestimmungsBlock}
+      ${harvestBlock}
+      ${wirkBlock}
+      <div class="section">
+        <label>Verwechslungsgefahr</label>
+        <div class="confusable-list" id="confusableList"></div>
+        <select class="confusable-add" id="confusableAdd"></select>
+      </div>
+      ${abschlussBlock}
+    </div>
+
+    <div class="sheet-footer">
+      <button class="danger" id="deletePlant">Beleg löschen</button>
+      <button type="button" id="doneBtnFooter">✓ Fertig – zur Ansicht</button>
+    </div>
+  `;
+
+  document.getElementById('closeSheet').onclick = closeSheetFn;
+  document.getElementById('doneBtn').onclick = ()=> openSheet(p.id, 'read');
+  document.getElementById('doneBtnFooter').onclick = ()=> openSheet(p.id, 'read');
+  document.getElementById('sheetFav').onclick = async ()=>{
+    p.favorite = !p.favorite;
+    document.getElementById('sheetFav').textContent = p.favorite ? '★' : '☆';
+    await savePlant(p);
+    renderFilters(); renderGrid();
+  };
+  document.getElementById('deletePlant').onclick = async ()=>{
+    if(confirm(`„${p.commonName}" wirklich löschen?`)){
+      await deletePlantStorage(p.id);
+      plants = plants.filter(x=>x.id!==p.id);
+      closeSheetFn();
+      renderFilters(); renderGrid();
+    }
+  };
+
+  const fields = ['commonName','latinName','family','volksnamen',
+    ...SECTION_DEFS.map(s=>s.key)];
+  fields.forEach(key=>{
+    const el = document.getElementById('f-'+key);
+    if(el.tagName === 'TEXTAREA'){
+      autoResizeTextarea(el);
+      el.addEventListener('input', ()=> autoResizeTextarea(el));
+    }
+    el.addEventListener('input', debounce(async ()=>{
+      p[key] = el.value;
+      await savePlant(p);
+      renderCardsSilently();
+    }, 400));
+  });
+
+  function checkDuplicateName(){
+    const nameEl = document.getElementById('f-commonName');
+    const warnEl = document.getElementById('dupWarning');
+    if(!nameEl || !warnEl) return;
+    const val = nameEl.value.trim().toLowerCase();
+    const isDup = val && plants.some(other => other.id !== p.id && (other.commonName||'').trim().toLowerCase() === val);
+    warnEl.classList.toggle('show', isDup);
+  }
+  checkDuplicateName();
+  document.getElementById('f-commonName').addEventListener('input', checkDuplicateName);
+
+  document.querySelectorAll('.tag-opt').forEach(btn=>{
+    btn.onclick = async ()=>{
+      const tag = btn.dataset.tag;
+      p.tags = p.tags || [];
+      if(p.tags.includes(tag)) p.tags = p.tags.filter(t=>t!==tag);
+      else p.tags.push(tag);
+      btn.classList.toggle('on');
+      await savePlant(p);
+      renderFilters(); renderGrid();
+    };
+  });
+
+  document.querySelectorAll('.harvest-track[data-field]').forEach(track=>{
+    attachHarvestTrackListeners(track, track.dataset.field, p);
+  });
+
+  renderPhotoGallery(p);
+  renderConfusables(p);
+  populateConfusableSelect(p);
+  renderCustomTags(p);
+
+  document.getElementById('customTagInput').addEventListener('keydown', async (e)=>{
+    if(e.key !== 'Enter') return;
+    e.preventDefault();
+    const val = e.target.value.trim().toLowerCase();
+    if(!val) return;
+    p.customTags = p.customTags || [];
+    if(!p.customTags.includes(val)){
+      p.customTags.push(val);
+      await savePlant(p);
+      renderCustomTags(p);
+      renderFilters(); renderGrid();
+    }
+    e.target.value = '';
+  });
+
+  document.getElementById('confusableAdd').addEventListener('change', async (e)=>{
+    const cid = e.target.value;
+    if(!cid) return;
+    p.confusables = p.confusables || [];
+    if(!p.confusables.includes(cid)) p.confusables.push(cid);
+    await savePlant(p);
+    renderConfusables(p);
+    populateConfusableSelect(p);
+    e.target.value = '';
+  });
+
+  document.getElementById('overlay').classList.add('open');
+  document.querySelectorAll('#sheet textarea').forEach(autoResizeTextarea);
+}
+
+function harvestCalendarReadHtml(p){
+  const rows = [];
+  if(asMonthArray(p.bluetezeit).length) rows.push({label:'Blütezeit', key:'bluetezeit', accent:true});
+  SAMMEL_FIELDS.forEach(f=>{
+    if(asMonthArray(p[f.key]).length) rows.push({label:f.shortLabel, key:f.key, accent:false});
+  });
+  if(rows.length === 0) return '';
+  return `
+    <div class="section harvest-section">
+      <label>Erntekalender</label>
+      <div class="harvest-calendar read-only">
+        <div class="harvest-header">
+          <span class="harvest-label"></span>
+          <div class="harvest-track header">
+            ${MONTHS.map(m=>`<span class="harvest-month-label">${m}</span>`).join('')}
+          </div>
+        </div>
+        ${rows.map(r=>`
+          <div class="harvest-row ${r.accent?'accent':''}">
+            <span class="harvest-label">${r.label}</span>
+            <div class="harvest-track">${harvestTrackHtml(r.key, p[r.key], r.accent)}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function openSheetRead(id){
+  currentId = id;
+  const p = plants.find(x=>x.id===id);
+  const sheet = document.getElementById('sheet');
+
+  const hasText = v => !!(v && v.trim().length > 0);
+
+  const tagChips = [
+    ...(p.tags||[]).map(t=>`<span class="tag ${t}">${TAGS.find(x=>x.key===t)?.label||t}</span>`),
+    ...(p.customTags||[]).map(t=>`<span class="tag custom">#${escapeHtml(t)}</span>`)
+  ].join('');
+
+  const photosHtml = (p.photos && p.photos.length)
+    ? `<div class="read-photos">${p.photos.map(src=>`<img src="${src}" alt="${escapeHtml(p.commonName)}">`).join('')}</div>`
+    : '';
+
+  const calendarHtml = harvestCalendarReadHtml(p);
+
+  const sectionsHtml = SECTION_DEFS
+    .filter(def => hasText(p[def.key]))
+    .map(def => `
+      <div class="section ${def.warn?'warn':''}">
+        <label>${def.label}</label>
+        <div class="read-text">${escapeHtml(p[def.key])}</div>
+      </div>
+    `).join('');
+
+  const confusablesList = (p.confusables||[]).map(cid=>plants.find(x=>x.id===cid)).filter(Boolean);
+  const confusablesHtml = confusablesList.length ? `
+    <div class="section warn">
+      <label>Verwechslungsgefahr</label>
+      <div class="confusable-list">
+        ${confusablesList.map(o=>`<button type="button" class="confusable-jump-chip" data-id="${o.id}">${escapeHtml(o.commonName||'Unbenannt')}</button>`).join('')}
+      </div>
+    </div>
+  ` : '';
+
+  const metaHtml = [
+    p.family ? `<div class="meta-item read"><label>Familie</label><div>${escapeHtml(p.family)}</div></div>` : '',
+    p.volksnamen ? `<div class="meta-item read"><label>Volkstümliche Namen</label><div>${escapeHtml(p.volksnamen)}</div></div>` : '',
+  ].join('');
+
+  const isEmpty = !photosHtml && !tagChips && !calendarHtml && !sectionsHtml && !confusablesHtml && !metaHtml;
+
+  sheet.innerHTML = `
+    <div class="sheet-header">
+      <div class="sheet-title-block">
+        <div class="read-common">${escapeHtml(p.commonName || 'Unbenannt')}</div>
+        ${p.latinName ? `<div class="read-latin">${escapeHtml(p.latinName)}</div>` : ''}
+      </div>
+      <div class="sheet-header-actions">
+        <button type="button" class="sheet-fav" id="sheetFav" aria-label="Favorit">${p.favorite?'★':'☆'}</button>
+        <button type="button" class="icon-btn small" id="printBtn" title="Als PDF exportieren / drucken">⎙</button>
+        <button type="button" class="icon-btn small" id="editBtn" title="Bearbeiten">✎</button>
+        <button class="sheet-close" id="closeSheet" aria-label="Schließen">✕</button>
+      </div>
+    </div>
+
+    <div class="print-label">
+      <span>Herbarium — Sammlungsbeleg</span>
+      <span id="printDate"></span>
+    </div>
+
+    ${metaHtml ? `<div class="sheet-meta-row">${metaHtml}</div>` : ''}
+    ${photosHtml}
+    ${tagChips ? `<div class="read-tags">${tagChips}</div>` : ''}
+
+    <div class="sections">
+      ${calendarHtml}
+      ${sectionsHtml}
+      ${confusablesHtml}
+    </div>
+
+    ${isEmpty ? `<div class="empty-state" style="margin:20px 32px 28px;">
+      <span class="big">Noch keine Details.</span>
+      Tippe auf „Bearbeiten", um Merkmale, Heilwirkung &amp; mehr zu ergänzen.
+    </div>` : ''}
+
+    <div class="sheet-footer">
+      <button class="danger" id="deletePlant">Beleg löschen</button>
+      <button type="button" id="printBtnFooter">⎙ Als PDF exportieren</button>
+      <button type="button" id="editBtnFooter">✎ Bearbeiten</button>
+    </div>
+  `;
+
+  document.getElementById('closeSheet').onclick = closeSheetFn;
+  document.getElementById('editBtn').onclick = ()=> openSheet(p.id, 'edit');
+  document.getElementById('editBtnFooter').onclick = ()=> openSheet(p.id, 'edit');
+  const doPrint = ()=>{
+    const dateEl = document.getElementById('printDate');
+    if(dateEl) dateEl.textContent = new Date().toLocaleDateString('de-DE', {year:'numeric', month:'long', day:'numeric'});
+    window.print();
+  };
+  document.getElementById('printBtn').onclick = doPrint;
+  document.getElementById('printBtnFooter').onclick = doPrint;
+  document.getElementById('sheetFav').onclick = async ()=>{
+    p.favorite = !p.favorite;
+    document.getElementById('sheetFav').textContent = p.favorite ? '★' : '☆';
+    await savePlant(p);
+    renderFilters(); renderGrid();
+  };
+  document.getElementById('deletePlant').onclick = async ()=>{
+    if(confirm(`„${p.commonName}" wirklich löschen?`)){
+      await deletePlantStorage(p.id);
+      plants = plants.filter(x=>x.id!==p.id);
+      closeSheetFn();
+      renderFilters(); renderGrid();
+    }
+  };
+  document.querySelectorAll('.confusable-jump-chip').forEach(btn=>{
+    btn.onclick = ()=> openSheet(btn.dataset.id, 'read');
+  });
+
+  document.getElementById('overlay').classList.add('open');
+}
+
+function openSheet(id, mode){
+  if(mode === 'edit') openSheetEdit(id);
+  else openSheetRead(id);
+}
+
+function renderCustomTags(p){
+  const el = document.getElementById('customTagList');
+  if(!el) return;
+  p.customTags = p.customTags || [];
+  el.innerHTML = '';
+  p.customTags.forEach((tag, idx)=>{
+    const pill = document.createElement('span');
+    pill.className = 'confusable-pill';
+    pill.innerHTML = `<span class="confusable-jump" style="cursor:default;">#${escapeHtml(tag)}</span><button type="button" class="confusable-remove">✕</button>`;
+    pill.querySelector('.confusable-remove').onclick = async ()=>{
+      p.customTags.splice(idx, 1);
+      await savePlant(p);
+      renderCustomTags(p);
+      renderFilters(); renderGrid();
+    };
+    el.appendChild(pill);
+  });
+}
+
+function renderConfusables(p){
+  const el = document.getElementById('confusableList');
+  if(!el) return;
+  p.confusables = p.confusables || [];
+  el.innerHTML = '';
+  p.confusables.forEach(cid=>{
+    const other = plants.find(x=>x.id===cid);
+    if(!other) return;
+    const pill = document.createElement('span');
+    pill.className = 'confusable-pill';
+    pill.innerHTML = `<button type="button" class="confusable-jump">${escapeHtml(other.commonName||'Unbenannt')}</button><button type="button" class="confusable-remove">✕</button>`;
+    pill.querySelector('.confusable-jump').onclick = ()=> openSheet(other.id);
+    pill.querySelector('.confusable-remove').onclick = async ()=>{
+      p.confusables = p.confusables.filter(x=>x!==cid);
+      await savePlant(p);
+      renderConfusables(p);
+      populateConfusableSelect(p);
+    };
+    el.appendChild(pill);
+  });
+}
+
+function populateConfusableSelect(p){
+  const sel = document.getElementById('confusableAdd');
+  if(!sel) return;
+  const options = plants.filter(x=> x.id!==p.id && !(p.confusables||[]).includes(x.id));
+  sel.innerHTML = `<option value="">+ Pflanze verknüpfen …</option>` +
+    options.map(x=>`<option value="${x.id}">${escapeHtml(x.commonName||'Unbenannt')}</option>`).join('');
+}
+
+function renderPhotoGallery(p){
+  const gallery = document.getElementById('photoGallery');
+  if(!gallery) return;
+  p.photos = p.photos || [];
+  gallery.innerHTML = '';
+
+  p.photos.forEach((src, idx)=>{
+    const slot = document.createElement('div');
+    slot.className = 'photo-slot';
+    slot.innerHTML = `
+      <img src="${src}" alt="Foto ${idx+1}">
+      <button type="button" class="photo-remove" title="Foto entfernen">✕</button>
+    `;
+    slot.querySelector('.photo-remove').onclick = async (e)=>{
+      e.stopPropagation();
+      p.photos.splice(idx, 1);
+      await updateThumb(p);
+      await savePlant(p);
+      renderPhotoGallery(p);
+      renderGrid();
+    };
+    gallery.appendChild(slot);
+  });
+
+  if(p.photos.length < 3){
+    const slot = document.createElement('label');
+    slot.className = 'photo-slot';
+    slot.innerHTML = `
+      <span class="hint">+ Foto hinzufügen</span>
+      <input type="file" accept="image/*">
+    `;
+    slot.querySelector('input').addEventListener('change', async (e)=>{
+      const file = e.target.files[0];
+      if(!file) return;
+      const processing = document.createElement('div');
+      processing.className = 'photo-processing';
+      processing.textContent = 'Wird komprimiert …';
+      slot.appendChild(processing);
+      try{
+        const compressed = await compressImage(file, 300*1024);
+        p.photos = p.photos || [];
+        p.photos.push(compressed);
+        await updateThumb(p);
+        await savePlant(p);
+        renderPhotoGallery(p);
+        renderGrid();
+      }catch(err){
+        console.error('Bildkomprimierung fehlgeschlagen:', err);
+        alert('Das Foto konnte nicht verarbeitet werden.');
+        renderPhotoGallery(p);
+      }
+    });
+    gallery.appendChild(slot);
+  }
+}
+
+function imageFromSrc(src){
+  return new Promise((resolve, reject)=>{
+    const image = new Image();
+    image.onload = ()=>resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
+}
+
+function renderCompressed(img, maxBytes, maxDim){
+  let width = img.width, height = img.height;
+  if(Math.max(width, height) > maxDim){
+    const scale = maxDim / Math.max(width, height);
+    width = Math.round(width * scale);
+    height = Math.round(height * scale);
+  }
+
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width = width;
+  canvas.height = height;
+  ctx.drawImage(img, 0, 0, width, height);
+
+  const estimateBytes = (dataUrlStr) => Math.round(dataUrlStr.length * 0.75);
+
+  let quality = 0.85;
+  let result = canvas.toDataURL('image/jpeg', quality);
+  let attempts = 0;
+
+  while(estimateBytes(result) > maxBytes && attempts < 10){
+    if(quality > 0.4){
+      quality -= 0.1;
+    } else {
+      width = Math.round(width * 0.85);
+      height = Math.round(height * 0.85);
+      canvas.width = width;
+      canvas.height = height;
+      ctx.drawImage(img, 0, 0, width, height);
+      quality = 0.7;
+    }
+    result = canvas.toDataURL('image/jpeg', quality);
+    attempts++;
+  }
+  return result;
+}
+
+async function compressImage(file, maxBytes = 300*1024, maxDim = 1600){
+  const dataUrl = await new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = ()=>resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+  const img = await imageFromSrc(dataUrl);
+  return renderCompressed(img, maxBytes, maxDim);
+}
+
+async function makeThumbnail(srcDataUrl, maxBytes = 40*1024, maxDim = 360){
+  const img = await imageFromSrc(srcDataUrl);
+  return renderCompressed(img, maxBytes, maxDim);
+}
+
+async function updateThumb(p){
+  if(p.photos && p.photos.length){
+    try{ p.thumb = await makeThumbnail(p.photos[0]); }
+    catch(e){ console.error('Thumbnail-Erstellung fehlgeschlagen:', e); }
+  } else {
+    p.thumb = '';
+  }
+}
+
+function renderCardsSilently(){
+  const scrollY = window.scrollY;
+  renderFilters();
+  renderGrid();
+  window.scrollTo(0, scrollY);
+}
+
+function closeSheetFn(){
+  document.getElementById('overlay').classList.remove('open');
+  currentId = null;
+}
+
+function debounce(fn, ms){
+  let t;
+  return (...args)=>{ clearTimeout(t); t = setTimeout(()=>fn(...args), ms); };
+}
+
+document.getElementById('overlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'overlay') closeSheetFn();
+});
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape') closeSheetFn();
+});
+
+document.getElementById('addBtn').addEventListener('click', async ()=>{
+  const p = newPlant();
+  plants.unshift(p);
+  await savePlant(p);
+  renderFilters(); renderGrid();
+  openSheet(p.id, 'edit');
+});
+
+document.getElementById('search').addEventListener('input', renderGrid);
+
+document.getElementById('groupToggle').addEventListener('change', (e)=>{
+  groupByFamily = e.target.checked;
+  renderGrid();
+});
+document.getElementById('sortSelect').addEventListener('change', (e)=>{
+  sortMode = e.target.value;
+  renderGrid();
+});
+
+function updateViewToggleButtons(){
+  document.getElementById('viewGridBtn').classList.toggle('active', viewMode === 'grid');
+  document.getElementById('viewListBtn').classList.toggle('active', viewMode === 'list');
+}
+document.getElementById('viewGridBtn').addEventListener('click', ()=>{
+  viewMode = 'grid';
+  try{ localStorage.setItem('herbarium-view', 'grid'); }catch(e){}
+  updateViewToggleButtons();
+  renderGrid();
+});
+document.getElementById('viewListBtn').addEventListener('click', ()=>{
+  viewMode = 'list';
+  try{ localStorage.setItem('herbarium-view', 'list'); }catch(e){}
+  updateViewToggleButtons();
+  renderGrid();
+});
+updateViewToggleButtons();
+
+const themeToggle = document.getElementById('themeToggle');
+function applyThemeButton(){
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  themeToggle.textContent = isDark ? '☀️' : '🌙';
+}
+themeToggle.addEventListener('click', ()=>{
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  if(isDark){
+    document.documentElement.removeAttribute('data-theme');
+    try{ localStorage.setItem('herbarium-theme','light'); }catch(e){}
+  } else {
+    document.documentElement.setAttribute('data-theme','dark');
+    try{ localStorage.setItem('herbarium-theme','dark'); }catch(e){}
+  }
+  applyThemeButton();
+});
+applyThemeButton();
+
+function updateAuthUI(){
+  const authBtn = document.getElementById('authBtn');
+  if(!authBtn) return;
+  document.body.classList.toggle('logged-in', !!currentUser);
+  authBtn.textContent = currentUser ? '🔓' : '🔒';
+  authBtn.title = currentUser ? `Eingeloggt als ${currentUser.email} – Klicken zum Ausloggen` : 'Login';
+  renderFilters();
+  renderGrid();
+}
+
+const authBtn = document.getElementById('authBtn');
+const loginPanel = document.getElementById('loginPanel');
+const loginError = document.getElementById('loginError');
+
+authBtn.addEventListener('click', async ()=>{
+  if(currentUser){
+    await signOut(auth);
+    loginPanel.hidden = true;
+  } else {
+    loginPanel.hidden = !loginPanel.hidden;
+    if(!loginPanel.hidden) document.getElementById('loginEmail').focus();
+  }
+});
+
+document.getElementById('loginSubmit').addEventListener('click', doLogin);
+document.getElementById('loginPassword').addEventListener('keydown', (e)=>{
+  if(e.key === 'Enter') doLogin();
+});
+
+async function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  loginError.classList.remove('show');
+  if(!email || !password) return;
+  try{
+    await signInWithEmailAndPassword(auth, email, password);
+    loginPanel.hidden = true;
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginPassword').value = '';
+  }catch(e){
+    console.error('Login fehlgeschlagen:', e);
+    loginError.textContent = 'Login fehlgeschlagen – E-Mail oder Passwort falsch.';
+    loginError.classList.add('show');
+  }
+}
+
+document.addEventListener('click', (e)=>{
+  if(!loginPanel.hidden && !e.target.closest('.auth-controls')){
+    loginPanel.hidden = true;
+  }
+});
+
+document.getElementById('exportBtn').addEventListener('click', ()=>{
+  const data = JSON.stringify(plants, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
   const url = URL.createObjectURL(blob);
-  const today = new Date().toISOString().slice(0, 10);
   const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0,10);
   a.href = url;
-  a.download = `alemannia-woerterbuch-backup-${today}.json`;
+  a.download = `herbarium-backup-${stamp}.json`;
   document.body.appendChild(a);
   a.click();
-  document.body.removeChild(a);
+  a.remove();
   URL.revokeObjectURL(url);
-  setStatus('Backup wird glade …');
-}
-
-document.getElementById('export-btn').addEventListener('click', exportBackup);
-
-/* ======= Wort-Battle (Gimmick) =======
-   Rein lokales Spielchen, unabhängig von de echte Votes.
-   Zwei zufälligi Wörtli treted gegeneinander a. */
-let currentBattle = null;
-let battleStarted = false;
-
-function pickBattlePair() {
-  if (entries.length < 2) return null;
-  const shuffled = [...entries].sort(() => Math.random() - 0.5);
-  return [shuffled[0], shuffled[1]];
-}
-
-function renderBattle() {
-  const arena = document.getElementById('battle-arena');
-  const result = document.getElementById('battle-result');
-  if (!arena) return;
-  result.textContent = '';
-
-  if (gameLimits.battle >= BATTLE_MAX) {
-    arena.innerHTML = '<p class="battle-sub">Kei Runde hüt me übrig, morn wieder!</p>';
-    updateGameRemainingDisplays();
-    return;
-  }
-
-  currentBattle = pickBattlePair();
-
-  if (!currentBattle) {
-    arena.innerHTML = '<p class="battle-sub">Es bruucht mindeschtens zwei Wörtli für a Battle.</p>';
-    return;
-  }
-
-  arena.innerHTML = `
-    <button type="button" class="battle-card" data-index="0">
-      <span class="battle-word">${escapeHtml(currentBattle[0].word)}</span>
-      <p class="battle-meaning">${escapeHtml(currentBattle[0].meaning)}</p>
-    </button>
-    <span class="battle-vs">vs</span>
-    <button type="button" class="battle-card" data-index="1">
-      <span class="battle-word">${escapeHtml(currentBattle[1].word)}</span>
-      <p class="battle-meaning">${escapeHtml(currentBattle[1].meaning)}</p>
-    </button>
-  `;
-
-  arena.querySelectorAll('.battle-card').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const idx = parseInt(btn.dataset.index, 10);
-      const winner = currentBattle[idx];
-      const loser = currentBattle[1 - idx];
-      result.textContent = `🏆 „${winner.word}" gwinnt disi Rundi (+0.21%) — „${loser.word}" verliert (-0.07%).`;
-      arena.querySelectorAll('.battle-card').forEach(b => b.disabled = true);
-      if (isConfigured && entriesRef) {
-        entriesRef.child(winner.id).child('votes').transaction(
-          v => Math.round(((v || 0) + 0.21) * 100) / 100,
-          (err) => { if (err) firebaseErrorHandler('Battle-Bonus')(err); }
-        );
-        entriesRef.child(loser.id).child('votes').transaction(
-          v => Math.round(((v || 0) - 0.07) * 100) / 100,
-          (err) => { if (err) firebaseErrorHandler('Battle-Malus')(err); }
-        );
-      }
-      gameLimits.battle++;
-      saveGameLimits();
-      updateGameRemainingDisplays();
-    });
-  });
-}
-
-document.getElementById('battle-next-btn').addEventListener('click', renderBattle);
-
-/* ======= Blitz-Rate =======
-   Bedeutig wird gzeigt, 4 Wörtli zur Uswahl, 6 Sekunde Zit. */
-let blitzTimer = null;
-
-function startBlitzRound() {
-  if (gameLimits.blitz >= BLITZ_MAX) return;
-
-  const arena = document.getElementById('blitz-arena');
-  const result = document.getElementById('blitz-result');
-  result.textContent = '';
-
-  if (entries.length < 4) {
-    arena.innerHTML = '<p class="battle-sub">Bruucht mindeschtens 4 Wörtli im Wörterbuech.</p>';
-    return;
-  }
-
-  document.getElementById('blitz-start-btn').disabled = true;
-
-  const shuffled = [...entries].sort(() => Math.random() - 0.5);
-  const correct = shuffled[0];
-  const options = shuffled.slice(0, 4).sort(() => Math.random() - 0.5);
-
-  let timeLeft = 6;
-  arena.innerHTML = `
-    <p class="blitz-meaning">${escapeHtml(correct.meaning)}</p>
-    <p class="blitz-timer" id="blitz-timer">⏱ ${timeLeft}s</p>
-    <div class="blitz-options">
-      ${options.map(o => `<button type="button" class="blitz-option" data-id="${o.id}" data-correct="${o.id === correct.id}">${escapeHtml(o.word)}</button>`).join('')}
-    </div>
-  `;
-
-  const timerEl = document.getElementById('blitz-timer');
-  blitzTimer = setInterval(() => {
-    timeLeft--;
-    if (timerEl) timerEl.textContent = `⏱ ${timeLeft}s`;
-    if (timeLeft <= 0) {
-      clearInterval(blitzTimer);
-      endBlitzRound(null, correct);
-    }
-  }, 1000);
-
-  arena.querySelectorAll('.blitz-option').forEach(btn => {
-    btn.addEventListener('click', () => {
-      clearInterval(blitzTimer);
-      endBlitzRound({ id: btn.dataset.id, correct: btn.dataset.correct === 'true' }, correct);
-    });
-  });
-}
-
-function endBlitzRound(choice, correctEntry) {
-  const result = document.getElementById('blitz-result');
-  const arena = document.getElementById('blitz-arena');
-  arena.querySelectorAll('.blitz-option').forEach(b => b.disabled = true);
-
-  if (!choice) {
-    result.textContent = `⏱ Zit abglaufe! S richtige Wort wär „${correctEntry.word}" gsi.`;
-  } else if (choice.correct) {
-    result.textContent = `✅ Richtig! „${correctEntry.word}" übercho +0.15%.`;
-    if (isConfigured && entriesRef) {
-      entriesRef.child(correctEntry.id).child('votes').transaction(
-        v => Math.round(((v || 0) + 0.15) * 100) / 100,
-        (err) => { if (err) firebaseErrorHandler('Blitz-Rate-Bonus')(err); }
-      );
-    }
-  } else {
-    const wrongWord = entries.find(e => e.id === choice.id);
-    result.textContent = `❌ Leider falsch. „${wrongWord ? wrongWord.word : ''}" übercho -0.12%.`;
-    if (isConfigured && entriesRef && wrongWord) {
-      entriesRef.child(wrongWord.id).child('votes').transaction(
-        v => Math.round(((v || 0) - 0.12) * 100) / 100,
-        (err) => { if (err) firebaseErrorHandler('Blitz-Rate-Malus')(err); }
-      );
-    }
-  }
-
-  gameLimits.blitz++;
-  saveGameLimits();
-  updateGameRemainingDisplays();
-}
-
-document.getElementById('blitz-start-btn').addEventListener('click', startBlitzRound);
-
-/* ======= Wort-Rad =======
-   1x pro Tag: zufälligs Wort + zufälliger Bonus/Malus. */
-const WHEEL_OUTCOMES = [-0.25, -0.15, -0.08, 0, 0.05, 0.10, 0.20, 0.30];
-
-function spinWheel() {
-  if (gameLimits.wheel >= WHEEL_MAX) return;
-  if (!entries.length) {
-    document.getElementById('wheel-result').textContent = 'Kei Wörtli zum Drehe do.';
-    return;
-  }
-
-  const btn = document.getElementById('wheel-spin-btn');
-  const display = document.getElementById('wheel-display');
-  const result = document.getElementById('wheel-result');
-  btn.disabled = true;
-  result.textContent = '';
-
-  let ticks = 0;
-  const maxTicks = 16;
-  const spinInterval = setInterval(() => {
-    const randomEntry = entries[Math.floor(Math.random() * entries.length)];
-    display.textContent = randomEntry.word;
-    ticks++;
-    if (ticks >= maxTicks) {
-      clearInterval(spinInterval);
-      finishSpin();
-    }
-  }, 90);
-}
-
-function finishSpin() {
-  const winner = entries[Math.floor(Math.random() * entries.length)];
-  const outcome = WHEEL_OUTCOMES[Math.floor(Math.random() * WHEEL_OUTCOMES.length)];
-  const display = document.getElementById('wheel-display');
-  const result = document.getElementById('wheel-result');
-  const sign = outcome > 0 ? '+' : '';
-
-  display.textContent = winner.word;
-  result.textContent = `🎡 „${winner.word}" übercho ${sign}${outcome.toFixed(2)}%!`;
-
-  if (isConfigured && entriesRef) {
-    entriesRef.child(winner.id).child('votes').transaction(
-      v => Math.round(((v || 0) + outcome) * 100) / 100,
-      (err) => { if (err) firebaseErrorHandler('Wort-Rad')(err); }
-    );
-  }
-
-  gameLimits.wheel++;
-  saveGameLimits();
-  updateGameRemainingDisplays();
-}
-
-document.getElementById('wheel-spin-btn').addEventListener('click', spinWheel);
-
-/* ======= Satz-Generator =======
-   Reines Spaß-Feature, kein Bezug zu de Votes. */
-const SENTENCE_TEMPLATES = [
-  '{NAME} het geschter mit sim {WORT} rumgmacht, bis alles ganz {WORT2} war.',
-  'Wenn {NAME} en {WORT} gseht, macht er sofort en {WORT2}.',
-  '{NAME} isch eigentlich ganz nett, aber au a bizzli en {WORT}.',
-  'Ohni {WORT} goht bi {NAME} gar nüt.',
-  '{NAME} het gsait: „Do fehlt bloß no en {WORT}!“',
-  'Am Sunntig goht {NAME} immer go {WORT} sueche.',
-  '{NAME} het sich letschthin als {WORT} verchleidet – bizarr, aber lustig.',
-  'S gibt nüt Schlimmers als {NAME} ohni sin morgendliche {WORT}.',
-  '{WORT} und {WORT2} – des isch scho fascht s Lebensmotto vo {NAME}.',
-  '{NAME} chan koi {WORT} rieche, ohni glich a {WORT2} z denke.',
-  'Uf de Frog, was {NAME} am liebschte mag, chunt immer d Antwort: „{WORT}!“',
-  '{NAME} hät emol probiert, en {WORT} z koche – s Ergebnis war eher a {WORT2}.',
-  'So richtig {WORT} isch nur oiner: {NAME}.',
-  '{NAME} schwört druf, dass en {WORT} jede Problem löst.',
-  'Wenn\u2019s um {WORT} goht, kennt {NAME} koi Gnad.',
-  '{NAME} und {WORT} – des passt zäme wie {WORT2} und Senf.',
-  'Letschti Nacht hät {NAME} devo träumt, en {WORT} z si.',
-  '{NAME} seit immer: en Tag ohni {WORT} isch en verlorene Tag.',
-  'Amol, ganz tief im Wald, isch {NAME} auf en sprechende {WORT} gstoße – seither schwätzt kei Mensch me mit ihm drüber.',
-  'Vor langer Zit, wo d Welt no anderscht usgseh hät, het {NAME} als Erschte je en {WORT} entdeckt und glich wieder verlore.',
-  'Ma verzellt sich hüt no, wie {NAME} in ere dunkle Nacht mit nur eme {WORT} bewaffnet gege drei {WORT2} kämpft hät.',
-  'Es het amol en Zit gää, wo {NAME} für en ganze Summer nur no über {WORT} gredt hät – sini Fründe hän no hüt Alpträum devo.',
-  'D Chronike vom Dorf berichte vo eme Jahr, wo {NAME} eigehändig s ganze {WORT}-Lager vom Dorfladen lärgmacht hät.',
-  'Forscher a de Uni händ hüt bekanntgee: {NAME} produziert im Schnitt drei {WORT} pro Stund, ohni dass sowas biologisch erklärbar wär.',
-  'Studie zeigt: 9 vo 10 {WORT} bevorzuged d Gsellschaft vo {NAME} gegeüber allne andere Persone.',
-  'Laut neuschte Umfrog isch {NAME} offiziell dr bekanntischt Fründ vo allne {WORT} im ganze Kanton.',
-  'En internationale Fachzitschrift het {NAME} als Weltrekordhalter im Kategorie „{WORT} in unter 10 Sekunde“ usgezeichnet.',
-  'Statistiker sind sich einig: D Wahrschinlichkeit, dass {NAME} hüt öppis mit {WORT} z tue het, liit bi exakt 100 Prozent.',
-  'Alles het harmlos agfange, aber am Ändi vom Abe het {NAME} de ganz Tisch voll {WORT} ghaa und niemer hät gwüsst wieso.',
-  '{NAME} isch für fünf Minute go {WORT} hole und erst drei Tag später wieder ufttaucht.',
-  'Was als kleine Spass mit eme {WORT} agfange het, isch bi {NAME} rasch usser Kontrolle grote.',
-  'Am Fasnachtsumzug het sich {NAME} als riesige {WORT} verchleidet und isch die ganzi Nacht nümme usem Kostüm usse cho.',
-  '{NAME} het letschti Wuche im Coop-Regal vergäbes noch eme guete {WORT} gsuecht und isch schlussendlich weinend hoimgange.',
-  'Es sott en normale Grillabe si, aber sobald {NAME} mit eme {WORT} ufttaucht, wird alles chaotisch.',
-  'Niemer wiess genau, worum, aber sobald {NAME} en {WORT} gseht, wird\u2019s plötzlich totestill im Ruum.',
-  'In dere Nacht, wo dr Vollmond gschine het, hät {NAME} zum erschte Mol mit eme {WORT} gredt – seither isch nüt me wie vorher.',
-  'Es git nur oi Regel im Dorf: Frog {NAME} nie nach {WORT}, wenn d nit die ganzi Wahrheit wüsse wottsch.',
-  'Am Änd vom Film stellt sich use: {NAME} isch die ganzi Zit über en verchleidete {WORT} gsi.',
-  'Es munkelt, dass {NAME} sich im Chäller en geheime Sammlig vo {WORT} agleit het – Bewiis git\u2019s koine.',
-  '{NAME} het sis ganzes Erspartes in {WORT}-Coins investiert – d Chart zeigt nur no en Pfeil noch unte.',
-  'Uf LinkedIn schriibt {NAME} jetzt „Serial {WORT}-Preneur“ under sim Name.',
-  'S neuscht Startup vo {NAME} verchauft {WORT} als Abo-Modell – d Investoren sind begeischteret, s Produkt versteht niemer.',
-  '{NAME} het vor de ganze Gruppe stolz verkündet, dass er jetzt offiziell in {WORT} „diamond hands“ isch.',
-  'An dr Krypto-Konferenz het {NAME} en ganzi Stund über d Zukunft vo {WORT} gredt – d Aktie isch nachher trotzdem gfalle.',
-  '{NAME} het emol gsait, sini große Liebi wär nit e Person, sondern en {WORT}.',
-  'Uf Tinder schriibt {NAME} im Profil nur: „Sueche öpper, wo mi so gern het wie ich min {WORT}.“',
-  'Bim erschte Date het {NAME} nur über {WORT} gredt – s zweite Date het denn leider nie stattgfunde.',
-  '{NAME} und sis {WORT} sind bekannt als s unzertrennlichscht Paar im ganze Dorf.',
-  '{NAME} isch offiziell dr gefährlichscht Mensch im Umgang mit {WORT}, wo\u2019s je gäh het.',
-  'Wenn me {NAME} und {WORT} in oim Satz erwähnt, wird automatisch alles zehnmol lustiger.',
-  'Es git nur zwei Sicherheite im Lebe: Tod und dass {NAME} früher oder später öppis mit {WORT} azstelle het.',
-  'Sit Mönsche-Gedenke het no niemer so vill über {WORT} gwüsst wie {NAME}.',
-  'En alte Wahrsager het amol prophezeit: Sobald {NAME} zum drittemol „{WORT}“ seit, bricht en neui Ära a.',
-  'Es stoht gschriebe: Am Änd vo allne Zite wird nur {NAME} und en einzige {WORT} übrigblibe.',
-  'D Sterne händ klar gseit: {NAME} und {WORT} sind für ewig verbunde.',
-  'Uf d Frog vom Reporter, wie er zu sim Erfolg cho sei, het {NAME} nur troche gsait: „{WORT}.“',
-  '„Des isch en historischer Momänt“, rüeft dr Kommentator, während {NAME} mit eme {WORT} über d Ziellinie sprintet.',
-  'Noch em Spiel het {NAME} zuegeh: „Ohni min {WORT} hätt ich des niemol gschafft.“',
-  '{NAME} het emol probiert, drei Sache glichzitig z tue: {WORT} esse, {WORT2} treibe und über {WORT3} nochdenke – s isch nid guet usgange.',
-  'Es git en alte Spruch im Dorf: Wer {WORT}, {WORT2} und {WORT3} zletscht vereine cha, wird zum {NAME} vo sinere Generation.',
-  'Am Änd vo dere verrückte Nacht sind nur no drü Sache übrigblibe: {NAME}, en {WORT} und d Erinnerig a {WORT2} und {WORT3}.',
-  '{NAME} schwört, dass sich {WORT}, {WORT2} und {WORT3} an däm Obe zu ere einzige, unerklärliche Gstalt vereinigt hän.',
-  'Wenn me {NAME} froge dät, was sis perfekte Läbe wär, chäm nur die Antwort: viel {WORT}, es bizzli {WORT2} und für immer {WORT3}.',
-  'D Sage vom Dorf verzellt vo drei Prüefige, wo {NAME} bestoh mueß: dr {WORT}, dr {WORT2} und zletscht dr gfürchtet {WORT3}.',
-  'Es hoißt, {NAME} heig sich amol mit {WORT}, {WORT2} und {WORT3} in oim Ruum yygschlosse und sei erst noch drei Tag wieder ussecho.',
-  'So lut de Legend bruucht\u2019s für e perfekte Zauber genau drei Zuetate: en {WORT}, en {WORT2} und {NAME} sälber, umrahmt vo {WORT3}.'
-];
-
-const GENERATOR_NAMES = ['Lida', 'Dwarf', 'Tank', 'Buur', 'Haikeu', 'Schorle', 'Maddel', 'Ziege'];
-
-document.getElementById('sentence-name-select').addEventListener('change', (ev) => {
-  document.getElementById('sentence-custom-name').style.display = ev.target.value === '__custom__' ? 'block' : 'none';
 });
 
-function generateSentence() {
-  const output = document.getElementById('sentence-output');
-  const likeBtn = document.getElementById('sentence-like-btn');
-  const likeStatus = document.getElementById('sentence-like-status');
-  const select = document.getElementById('sentence-name-select');
-  const customInput = document.getElementById('sentence-custom-name');
-
-  likeStatus.textContent = '';
-  likeBtn.disabled = true;
-  likeBtn.classList.remove('liked');
-  likeBtn.textContent = '❤️ Gfallt mr';
-
-  let name = select.value;
-  if (name === '__random__') {
-    name = GENERATOR_NAMES[Math.floor(Math.random() * GENERATOR_NAMES.length)];
-  } else if (name === '__custom__') {
-    name = customInput.value.trim();
-  }
-  if (!name) {
-    output.textContent = 'Wähl zerscht en Name us (oder gib din eigene yy).';
-    return;
-  }
-  if (!entries.length) {
-    output.textContent = 'S Wörterbuech isch no leer – füeg zerscht paar Wörtli zue.';
-    return;
-  }
-
-  const template = SENTENCE_TEMPLATES[Math.floor(Math.random() * SENTENCE_TEMPLATES.length)];
-  const word1 = entries[Math.floor(Math.random() * entries.length)].word;
-  let word2 = word1;
-  if (entries.length > 1) {
-    let attempts = 0;
-    do {
-      word2 = entries[Math.floor(Math.random() * entries.length)].word;
-      attempts++;
-    } while (word2 === word1 && attempts < 10);
-  }
-  let word3 = word1;
-  if (entries.length > 2) {
-    let attempts = 0;
-    do {
-      word3 = entries[Math.floor(Math.random() * entries.length)].word;
-      attempts++;
-    } while ((word3 === word1 || word3 === word2) && attempts < 10);
-  }
-
-  const nameHtml = `<span class="sentence-highlight">${escapeHtml(name)}</span>`;
-  const word1Html = `<span class="sentence-highlight">${escapeHtml(word1)}</span>`;
-  const word2Html = `<span class="sentence-highlight">${escapeHtml(word2)}</span>`;
-  const word3Html = `<span class="sentence-highlight">${escapeHtml(word3)}</span>`;
-
-  const sentence = template
-    .split('{NAME}').join(nameHtml)
-    .split('{WORT3}').join(word3Html)
-    .split('{WORT2}').join(word2Html)
-    .split('{WORT}').join(word1Html);
-
-  const plainSentence = template
-    .split('{NAME}').join(name)
-    .split('{WORT3}').join(word3)
-    .split('{WORT2}').join(word2)
-    .split('{WORT}').join(word1);
-
-  output.innerHTML = sentence;
-  currentSentenceText = plainSentence;
-  currentSentenceSaved = false;
-  likeBtn.disabled = !isConfigured;
-}
-
-document.getElementById('sentence-generate-btn').addEventListener('click', generateSentence);
-
-function likeCurrentSentence() {
-  const likeBtn = document.getElementById('sentence-like-btn');
-  const likeStatus = document.getElementById('sentence-like-status');
-  if (!currentSentenceText || currentSentenceSaved || !isConfigured || !hallOfFameRef) return;
-
-  const newRef = hallOfFameRef.push();
-  newRef.set({ text: currentSentenceText, likes: 1, createdAt: Date.now() })
-    .then(() => {
-      mySentenceLikes[newRef.key] = true;
-      saveMySentenceLikes();
-      currentSentenceSaved = true;
-      likeBtn.disabled = true;
-      likeBtn.classList.add('liked');
-      likeBtn.textContent = '❤️ Gspeicheret';
-      likeStatus.textContent = 'Satz für alli in de Hall-of-Fame gspeicheret!';
-    })
-    .catch((err) => {
-      firebaseErrorHandler('Satz spichere')(err);
-      likeStatus.textContent = '';
-    });
-}
-
-document.getElementById('sentence-like-btn').addEventListener('click', likeCurrentSentence);
-
-function hofSortCompare(a, b) {
-  const likeDiff = (b.likes || 0) - (a.likes || 0);
-  if (likeDiff !== 0) return likeDiff;
-  return (b.createdAt || 0) - (a.createdAt || 0);
-}
-
-let showAllSentences = false;
-
-function buildHofItemHtml(s, rank) {
-  const alreadyLiked = !!mySentenceLikes[s.id];
-  return `
-    <li class="hof-item">
-      <span class="hof-rank">#${rank}</span>
-      <span class="hof-text">${escapeHtml(s.text)}</span>
-      <button type="button" class="hof-like-btn ${alreadyLiked ? 'liked' : ''}" data-id="${s.id}" ${alreadyLiked ? 'disabled' : ''}>
-        ❤️ ${s.likes || 0}
-      </button>
-      <button type="button" class="hof-delete-btn" data-id="${s.id}" aria-label="Satz lösche">🗑️</button>
-    </li>
-  `;
-}
-
-function wireHofButtons(container) {
-  container.querySelectorAll('.hof-like-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const id = btn.dataset.id;
-      if (mySentenceLikes[id] || !hallOfFameRef) return;
-      hallOfFameRef.child(id).child('likes').transaction(
-        v => (v || 0) + 1,
-        (err) => { if (err) firebaseErrorHandler('Satz like')(err); }
-      );
-      mySentenceLikes[id] = true;
-      saveMySentenceLikes();
-      renderHallOfFame();
-    });
-  });
-
-  container.querySelectorAll('.hof-delete-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (!hallOfFameRef) return;
-      hallOfFameRef.child(btn.dataset.id).remove().catch(firebaseErrorHandler('Satz lösche'));
-    });
-  });
-}
-
-function renderHallOfFame() {
-  const list = document.getElementById('hall-of-fame-list');
-  const fullList = document.getElementById('hall-of-fame-full-list');
-  const toggleBtn = document.getElementById('hof-toggle-btn');
-  if (!list) return;
-
-  const sorted = [...hallOfFame].sort(hofSortCompare);
-  const top = sorted.slice(0, 3);
-
-  if (!sorted.length) {
-    list.innerHTML = '<p class="battle-sub">No kei Sätz gliked – sig dr Erschti!</p>';
-    if (fullList) { fullList.innerHTML = ''; fullList.style.display = 'none'; }
-    if (toggleBtn) toggleBtn.style.display = 'none';
-    return;
-  }
-
-  list.innerHTML = top.map((s, i) => buildHofItemHtml(s, i + 1)).join('');
-  wireHofButtons(list);
-
-  if (toggleBtn) {
-    toggleBtn.style.display = sorted.length > 3 ? 'inline-block' : 'none';
-  }
-
-  if (fullList) {
-    if (showAllSentences) {
-      fullList.innerHTML = sorted.map((s, i) => buildHofItemHtml(s, i + 1)).join('');
-      wireHofButtons(fullList);
-      fullList.style.display = 'flex';
-    } else {
-      fullList.innerHTML = '';
-      fullList.style.display = 'none';
+document.getElementById('importBtn').addEventListener('click', ()=>{
+  document.getElementById('importInput').click();
+});
+document.getElementById('importInput').addEventListener('change', async (e)=>{
+  const file = e.target.files[0];
+  if(!file) return;
+  try{
+    const text = await file.text();
+    const data = JSON.parse(text);
+    if(!Array.isArray(data)) throw new Error('Ungültiges Format — erwartet wird eine Liste von Pflanzen.');
+    if(!confirm(`${data.length} Pflanze(n) importieren? Einträge mit gleicher ID werden überschrieben.`)) return;
+    for(const p of data){
+      if(!p.id) p.id = 'p'+Date.now()+Math.random().toString(36).slice(2,7);
+      await savePlant(p);
     }
+    await loadPlants();
+    alert(`${data.length} Pflanze(n) importiert.`);
+  }catch(err){
+    console.error('Import-Fehler:', err);
+    alert('Import fehlgeschlagen: ' + err.message);
   }
-}
-
-document.getElementById('hof-toggle-btn').addEventListener('click', () => {
-  showAllSentences = !showAllSentences;
-  document.getElementById('hof-toggle-btn').textContent = showAllSentences ? 'Weniger azeige 🔼' : '🗂️ Alli Sätz azeige';
-  renderHallOfFame();
+  e.target.value = '';
 });
 
-function render() {
-  renderWordOfDay();
-  renderLidaboard();
-
-  const query = document.getElementById('search').value.trim().toLowerCase();
-  const list = document.getElementById('entries-list');
-  const count = document.getElementById('count');
-
-  const filtered = entries
-    .filter(e => !query || e.word.toLowerCase().includes(query) || e.meaning.toLowerCase().includes(query))
-    .sort((a, b) => (b.votes - a.votes) || a.word.localeCompare(b.word, 'de'));
-
-  count.textContent = `${filtered.length} von ${entries.length} Wörtli`;
-
-  if (filtered.length === 0) {
-    list.innerHTML = `<div class="empty-state">Nix gfunde. Vielleicht kennsch du des Wörtli — schrieb s doch yy!</div>`;
-    return;
-  }
-
-  list.innerHTML = filtered.map(e => {
-    if (e.id === editingId) {
-      return `
-      <article class="entry">
-        <div class="entry-body" style="width:100%;">
-          <div class="edit-field">
-            <label for="edit-word-${e.id}">Wort</label>
-            <input type="text" id="edit-word-${e.id}" maxlength="25" value="${escapeHtml(e.word)}">
-          </div>
-          <div class="edit-field">
-            <label for="edit-meaning-${e.id}">Bedeutung</label>
-            <textarea id="edit-meaning-${e.id}" maxlength="100" rows="2">${escapeHtml(e.meaning)}</textarea>
-          </div>
-          <div class="edit-field">
-            <label for="edit-example-${e.id}">Beispielsatz</label>
-            <input type="text" id="edit-example-${e.id}" maxlength="150" value="${escapeHtml(e.example || '')}">
-          </div>
-          <div class="entry-foot">
-            <button class="cancel-btn" data-id="${e.id}">abbrechen</button>
-            <button class="save-btn" data-id="${e.id}">speichern</button>
-          </div>
-        </div>
-      </article>
-      `;
-    }
-
-    const myVote = myVotes[e.id];
-    return `
-    <article class="entry">
-      <div class="vote-block">
-        <button class="vote-btn up ${myVote === 'up' ? 'voted' : ''}" data-id="${e.id}" data-dir="up" ${myVote ? 'disabled' : ''} aria-label="Für ${escapeHtml(e.word)} hochvoten">▲</button>
-        <span class="ticker">${getTicker(e.word)}</span>
-        <span class="vote-count ${voteClass(e.votes)}">${formatVotes(e.votes)}</span>
-        <button class="vote-btn down ${myVote === 'down' ? 'voted' : ''}" data-id="${e.id}" data-dir="down" ${myVote ? 'disabled' : ''} aria-label="Für ${escapeHtml(e.word)} runtervoten">▼</button>
-      </div>
-      <div class="entry-body">
-        <span class="entry-word">${escapeHtml(e.word)}</span>
-        <p class="entry-meaning">${escapeHtml(e.meaning)}</p>
-        ${e.example ? `<p class="entry-example">${escapeHtml(e.example)}</p>` : ''}
-        <div class="entry-foot">
-          <button class="edit-btn" data-id="${e.id}">rumdoktere</button>
-          <button class="delete-btn" data-id="${e.id}">lösche</button>
-        </div>
-      </div>
-    </article>
-  `;
-  }).join('');
-
-  list.querySelectorAll('.vote-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (!isConfigured) { setStatus('Firebase isch no net konfiguriert.', true); return; }
-      const id = btn.dataset.id;
-      if (myVotes[id]) return;
-      const dir = btn.dataset.dir;
-      const delta = dir === 'up' ? 0.71 : -0.71;
-      entriesRef.child(id).child('votes').transaction(
-        v => Math.round(((v || 0) + delta) * 100) / 100,
-        (err) => { if (err) firebaseErrorHandler('Vote')(err); }
-      );
-      myVotes[id] = dir;
-      saveMyVotes();
-      render();
-    });
-  });
-
-  list.querySelectorAll('.delete-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (!isConfigured) { setStatus('Firebase isch no net konfiguriert.', true); return; }
-      entriesRef.child(btn.dataset.id).remove()
-        .then(() => setStatus('Wörtli glöscht.'))
-        .catch(firebaseErrorHandler('Wörtli lösche'));
-    });
-  });
-
-  list.querySelectorAll('.edit-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      editingId = btn.dataset.id;
-      render();
-    });
-  });
-
-  list.querySelectorAll('.cancel-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      editingId = null;
-      render();
-    });
-  });
-
-  list.querySelectorAll('.save-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const id = btn.dataset.id;
-      const word = document.getElementById(`edit-word-${id}`).value.trim();
-      const meaning = document.getElementById(`edit-meaning-${id}`).value.trim();
-      const example = document.getElementById(`edit-example-${id}`).value.trim();
-
-      if (!word || !meaning) { setStatus('Wort und Bedeutung dürfed net leer si.', true); return; }
-      if (!isConfigured) { setStatus('Firebase isch no net konfiguriert.', true); return; }
-
-      entriesRef.child(id).update({ word, meaning, example })
-        .then(() => {
-          editingId = null;
-          setStatus('Wörtli aktualisiert!');
-        })
-        .catch(firebaseErrorHandler('Wörtli aktualisiere'));
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(err=>{
+      console.error('Service-Worker-Registrierung fehlgeschlagen:', err);
     });
   });
 }
 
-document.getElementById('search').addEventListener('input', render);
-
-document.getElementById('add-form').addEventListener('submit', (ev) => {
-  ev.preventDefault();
-  const word = document.getElementById('word').value.trim();
-  const meaning = document.getElementById('meaning').value.trim();
-  const example = document.getElementById('example').value.trim();
-
-  if (!word || !meaning) return;
-  if (!isConfigured) { setStatus('Firebase isch no net konfiguriert.', true); return; }
-
-  entriesRef.push({ word, meaning, example, votes: 0 })
-    .then(() => {
-      ev.target.reset();
-      setStatus('Wörtli gspeichert!');
-    })
-    .catch(firebaseErrorHandler('Wörtli yyfüege'));
-});
-
-initFirebase();
-
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(() => { /* PWA-Feature optional, still funktioniert d App */ });
-  });
-}
+loadPlants();
 </script>
 </body>
 </html>
