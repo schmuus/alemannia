@@ -447,6 +447,18 @@
   }
   .export-btn:hover { color: var(--orange); border-color: var(--orange-dim); }
 
+  #sort-select {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .72rem;
+    padding: .35rem .5rem;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  #sort-select:focus { outline: 2px solid var(--orange); outline-offset: 2px; }
+
   .loading {
     text-align: center;
     color: var(--dim);
@@ -709,16 +721,21 @@
 <main>
   <div class="notice" id="connection-notice" style="display:none;">⚠️ Firebase isch no net konfiguriert. Trag dein <code>firebaseConfig</code> im HTML-Code (Abschnitt "FIREBASE CONFIG") yy.</div>
 
-  <div id="word-of-day-section"></div>
+  <div id="word-of-day-section"><p class="loading">⏳ Lädt …</p></div>
 
   <div class="lidaboard-section">
     <h2 class="lidaboard-title">🏆 's Lidaboard</h2>
-    <ol class="lidaboard-list" id="lidaboard-list"></ol>
+    <ol class="lidaboard-list" id="lidaboard-list"><li class="loading">⏳ Lädt …</li></ol>
   </div>
 
   <div class="search-wrap">
     <input type="text" id="search" placeholder="Suech noch ere Wörtli oder Bedeutig …" aria-label="Wörterbuch durchsuchen">
     <div class="search-meta">
+      <select id="sort-select" aria-label="Sortierung">
+        <option value="votes">Sortiert: Beliebtheit</option>
+        <option value="new">Sortiert: Neuste zuerst</option>
+        <option value="az">Sortiert: A-Z</option>
+      </select>
       <span class="count" id="count"></span>
       <button type="button" id="export-btn" class="export-btn">📥 Backup als JSON</button>
     </div>
@@ -984,6 +1001,16 @@ function initFirebase() {
   entriesRef = db.ref('entries');
   hallOfFameRef = db.ref('sentences');
 
+  let firstLoadReceived = false;
+  const loadTimeout = setTimeout(() => {
+    if (firstLoadReceived) return;
+    const listEl = document.getElementById('entries-list');
+    if (listEl) {
+      listEl.innerHTML = '<p class="loading">⚠️ Verbindig dauert länger als erwartet … Prüf dini Internetverbindig oder lad d Sytte neu.</p>';
+    }
+    showToast('Verbindig zu Firebase dauert ungewöhnlich lang.', true);
+  }, 10000);
+
   entriesRef.once('value', snap => {
     if (!snap.exists()) entriesRef.set(seedEntries).catch(firebaseErrorHandler('Wörterbuch initialisiere'));
   });
@@ -995,6 +1022,8 @@ function initFirebase() {
   });
 
   entriesRef.on('value', snap => {
+    firstLoadReceived = true;
+    clearTimeout(loadTimeout);
     const data = snap.val() || {};
     entries = Object.entries(data).map(([id, e]) => ({ id, ...e }));
     render();
@@ -1494,7 +1523,7 @@ function buildHofItemHtml(s, rank) {
       <button type="button" class="hof-like-btn ${alreadyLiked ? 'liked' : ''}" data-id="${s.id}" ${alreadyLiked ? 'disabled' : ''}>
         ❤️ ${s.likes || 0}
       </button>
-      <button type="button" class="hof-delete-btn" data-id="${s.id}" aria-label="Satz lösche">🗑️</button>
+      <button type="button" class="hof-delete-btn" data-id="${s.id}" data-text="${escapeHtml(s.text)}" aria-label="Satz lösche">🗑️</button>
     </li>
   `;
 }
@@ -1517,6 +1546,8 @@ function wireHofButtons(container) {
   container.querySelectorAll('.hof-delete-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       if (!hallOfFameRef) return;
+      const preview = (btn.dataset.text || '').slice(0, 60);
+      if (!confirm(`Satz wirklich lösche?\n„${preview}${btn.dataset.text.length > 60 ? '…' : ''}"`)) return;
       hallOfFameRef.child(btn.dataset.id).remove().catch(firebaseErrorHandler('Satz lösche'));
     });
   });
@@ -1570,10 +1601,17 @@ function render() {
   const query = document.getElementById('search').value.trim().toLowerCase();
   const list = document.getElementById('entries-list');
   const count = document.getElementById('count');
+  const sortMode = document.getElementById('sort-select').value;
+
+  const sortFns = {
+    votes: (a, b) => (b.votes - a.votes) || a.word.localeCompare(b.word, 'de'),
+    new: (a, b) => (b.createdAt || 0) - (a.createdAt || 0) || (b.id > a.id ? 1 : b.id < a.id ? -1 : 0),
+    az: (a, b) => a.word.localeCompare(b.word, 'de')
+  };
 
   const filtered = entries
     .filter(e => !query || e.word.toLowerCase().includes(query) || e.meaning.toLowerCase().includes(query))
-    .sort((a, b) => (b.votes - a.votes) || a.word.localeCompare(b.word, 'de'));
+    .sort(sortFns[sortMode] || sortFns.votes);
 
   count.textContent = `${filtered.length} von ${entries.length} Wörtli`;
 
@@ -1623,7 +1661,7 @@ function render() {
         ${e.example ? `<p class="entry-example">${escapeHtml(e.example)}</p>` : ''}
         <div class="entry-foot">
           <button class="edit-btn" data-id="${e.id}">rumdoktere</button>
-          <button class="delete-btn" data-id="${e.id}">lösche</button>
+          <button class="delete-btn" data-id="${e.id}" data-word="${escapeHtml(e.word)}">lösche</button>
         </div>
       </div>
     </article>
@@ -1650,6 +1688,8 @@ function render() {
   list.querySelectorAll('.delete-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       if (!isConfigured) { setStatus('Firebase isch no net konfiguriert.', true); return; }
+      const word = btn.dataset.word || 'des Wörtli';
+      if (!confirm(`„${word}" wirklich lösche? Des cha nid rückgängig gmacht werde.`)) return;
       entriesRef.child(btn.dataset.id).remove()
         .then(() => setStatus('Wörtli glöscht.'))
         .catch(firebaseErrorHandler('Wörtli lösche'));
@@ -1691,6 +1731,7 @@ function render() {
 }
 
 document.getElementById('search').addEventListener('input', render);
+document.getElementById('sort-select').addEventListener('change', render);
 
 document.getElementById('add-form').addEventListener('submit', (ev) => {
   ev.preventDefault();
@@ -1701,7 +1742,7 @@ document.getElementById('add-form').addEventListener('submit', (ev) => {
   if (!word || !meaning) return;
   if (!isConfigured) { setStatus('Firebase isch no net konfiguriert.', true); return; }
 
-  entriesRef.push({ word, meaning, example, votes: 0 })
+  entriesRef.push({ word, meaning, example, votes: 0, createdAt: Date.now() })
     .then(() => {
       ev.target.reset();
       setStatus('Wörtli gspeichert!');
