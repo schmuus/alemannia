@@ -405,6 +405,25 @@
     padding: 0 1.5rem;
   }
 
+  .impressum-link {
+    background: none;
+    border: none;
+    color: var(--dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .75rem;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+  }
+  .impressum-link:hover { color: var(--orange); }
+
+  #impressum-box {
+    margin-top: .5rem;
+    color: var(--dim);
+    font-size: .72rem;
+  }
+  #impressum-box a { color: var(--orange); }
+
   #global-toast {
     position: fixed;
     left: 50%;
@@ -766,6 +785,10 @@
 
 <footer>
   Geteiltes Wörterbuch &middot; sichtbar für alle mit Zugriff auf diese App.
+  &middot; <button type="button" id="impressum-toggle-btn" class="impressum-link">Impressum</button>
+  <div id="impressum-box" style="display:none;">
+    Marco Kirchhofer &middot; <a href="mailto:marcokkirchi@web.de">marcokkirchi@web.de</a>
+  </div>
 </footer>
 
 <section class="battle-section games-toggle-section">
@@ -983,6 +1006,11 @@ document.getElementById('sentence-toggle-btn').addEventListener('click', () => {
   const isHidden = container.style.display === 'none';
   container.style.display = isHidden ? 'block' : 'none';
   btn.textContent = isHidden ? 'Satz-Generator verstecke 🔼' : '📝 Satz-Generator zeige';
+});
+
+document.getElementById('impressum-toggle-btn').addEventListener('click', () => {
+  const box = document.getElementById('impressum-box');
+  box.style.display = box.style.display === 'none' ? 'block' : 'none';
 });
 
 function initFirebase() {
