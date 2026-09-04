@@ -15,13 +15,13 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <style>
   :root{
-    --bg: #10142a;
-    --bg-card: #1b2140;
-    --white: #f2f1ea;
-    --dim: #8b91ab;
+    --bg: #15161b;
+    --bg-card: #202229;
+    --white: #f1efe8;
+    --dim: #90929a;
     --orange: #d4af37;
-    --orange-dim: #a8862a;
-    --border: #2c3358;
+    --orange-dim: #a3812a;
+    --border: #2d2e35;
 
     --sp-1: .5rem;
     --sp-2: 1rem;
@@ -57,18 +57,43 @@
   }
 
   .glyph {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 68px;
+    height: 68px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #8a6d1a 0%, #f5e7a3 22%, #d4af37 45%, #fff6d5 65%, #b8860b 85%, #e8c65a 100%);
+    background-size: 220% 220%;
+    margin-bottom: var(--sp-2);
+    padding: 3px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.5);
+    animation: glyph-shine 6s ease-in-out infinite;
+  }
+  .glyph-inner {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    background: var(--bg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .glyph-symbol {
     font-family: 'JetBrains Mono', monospace;
     font-weight: 800;
-    font-size: 2rem;
-    color: var(--orange);
-    display: inline-block;
-    width: 56px;
-    height: 56px;
-    line-height: 56px;
-    border: 2px solid var(--orange);
-    border-radius: 50%;
-    margin-bottom: var(--sp-2);
-    box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+    font-size: 2.1rem;
+    line-height: 1;
+    background-image: linear-gradient(160deg, #fff6d5 0%, #d4af37 35%, #8a6d1a 55%, #f5e7a3 75%, #d4af37 100%);
+    background-size: 200% 200%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: glyph-shine 6s ease-in-out infinite;
+  }
+  @keyframes glyph-shine {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
   }
 
   h1 {
@@ -153,7 +178,7 @@
   }
 
   .entry {
-    background: linear-gradient(160deg, var(--bg-card), #171c38);
+    background: linear-gradient(160deg, var(--bg-card), #26282f);
     border: 1px solid var(--border);
     border-left: 3px solid var(--orange);
     border-radius: 8px;
@@ -277,7 +302,7 @@
     display: flex;
     align-items: center;
     gap: .8rem;
-    background: linear-gradient(160deg, var(--bg-card), #171c38);
+    background: linear-gradient(160deg, var(--bg-card), #26282f);
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: .6rem .9rem;
@@ -371,7 +396,7 @@
   }
 
   form#add-form {
-    background: linear-gradient(160deg, var(--bg-card), #171c38);
+    background: linear-gradient(160deg, var(--bg-card), #26282f);
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 1.5rem;
@@ -402,7 +427,7 @@
 
   button[type="submit"] {
     background: var(--orange);
-    color: #161a2f;
+    color: #1a1b20;
     border: none;
     font-family: 'JetBrains Mono', monospace;
     font-weight: 700;
@@ -543,7 +568,7 @@
     flex: 1;
     min-width: 140px;
     max-width: 260px;
-    background: linear-gradient(160deg, var(--bg-card), #171c38);
+    background: linear-gradient(160deg, var(--bg-card), #26282f);
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 1rem;
@@ -718,7 +743,7 @@
     display: flex;
     align-items: flex-start;
     gap: .8rem;
-    background: linear-gradient(160deg, var(--bg-card), #171c38);
+    background: linear-gradient(160deg, var(--bg-card), #26282f);
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: .7rem .9rem;
@@ -766,7 +791,7 @@
 <body>
 
 <header>
-  <span class="glyph">₿</span>
+  <span class="glyph"><span class="glyph-inner"><span class="glyph-symbol">₿</span></span></span>
   <h1>s' Alemannia Wörterbuechli</h1>
   <p class="sub">Slang &amp; Jargon &middot; gmeinsam gsammlet</p>
   <p class="header-stats" id="header-stats"></p>
