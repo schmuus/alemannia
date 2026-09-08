@@ -355,7 +355,53 @@
     justify-content: flex-end;
     gap: 1rem;
     margin-top: .6rem;
+    position: relative;
   }
+
+  .entry-menu-wrap {
+    position: relative;
+  }
+
+  .menu-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--dim);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .75rem;
+    cursor: pointer;
+    padding: .3rem .7rem;
+    border-radius: 6px;
+  }
+  .menu-btn:hover { color: var(--orange); border-color: var(--orange-dim); }
+
+  .menu-dropdown {
+    position: absolute;
+    right: 0;
+    top: calc(100% + .4rem);
+    background: linear-gradient(160deg, var(--bg-card), #26282f);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .4rem;
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+    min-width: 130px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    z-index: 20;
+  }
+  .menu-dropdown button {
+    text-align: left;
+    background: none;
+    border: none;
+    color: var(--white);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .8rem;
+    padding: .5rem .6rem;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .menu-dropdown button:hover { background: rgba(212,175,55,0.14); color: var(--orange); }
+  .menu-dropdown .delete-btn:hover { background: rgba(224,101,74,0.14); color: #e0654a; }
 
   .delete-btn, .edit-btn, .save-btn, .cancel-btn {
     background: none;
@@ -1789,8 +1835,13 @@ function render() {
         <p class="entry-meaning">${escapeHtml(e.meaning)}</p>
         ${e.example ? `<p class="entry-example">${escapeHtml(e.example)}</p>` : ''}
         <div class="entry-foot">
-          <button class="edit-btn" data-id="${e.id}">rumdoktere</button>
-          <button class="delete-btn" data-id="${e.id}" data-word="${escapeHtml(e.word)}">lösche</button>
+          <div class="entry-menu-wrap">
+            <button class="menu-btn" data-id="${e.id}" aria-haspopup="true" aria-expanded="false">⋯ Menü</button>
+            <div class="menu-dropdown" id="menu-${e.id}" style="display:none;">
+              <button class="edit-btn" data-id="${e.id}">Bearbeite</button>
+              <button class="delete-btn" data-id="${e.id}" data-word="${escapeHtml(e.word)}">Lösche</button>
+            </div>
+          </div>
         </div>
       </div>
     </article>
@@ -1812,6 +1863,20 @@ function render() {
       myVotes[id] = dir;
       saveMyVotes();
       render();
+    });
+  });
+
+  list.querySelectorAll('.menu-btn').forEach(btn => {
+    btn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      const dropdown = document.getElementById(`menu-${btn.dataset.id}`);
+      const isOpen = dropdown.style.display === 'flex';
+      list.querySelectorAll('.menu-dropdown').forEach(d => { d.style.display = 'none'; });
+      list.querySelectorAll('.menu-btn').forEach(b => b.setAttribute('aria-expanded', 'false'));
+      if (!isOpen) {
+        dropdown.style.display = 'flex';
+        btn.setAttribute('aria-expanded', 'true');
+      }
     });
   });
 
@@ -1878,6 +1943,11 @@ document.getElementById('add-form').addEventListener('submit', (ev) => {
       setStatus('Wörtli gspeichert!');
     })
     .catch(firebaseErrorHandler('Wörtli yyfüege'));
+});
+
+document.addEventListener('click', () => {
+  document.querySelectorAll('.menu-dropdown').forEach(d => { d.style.display = 'none'; });
+  document.querySelectorAll('.menu-btn').forEach(b => b.setAttribute('aria-expanded', 'false'));
 });
 
 initFirebase();
